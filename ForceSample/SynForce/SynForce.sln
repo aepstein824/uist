@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ForcePad", "ForcePad\ForceP
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clitest", "clitest\clitest.vcxproj", "{3FC4F797-2964-4BBC-B901-8672B85B0662}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "forcepadserver", "forcepadserver\forcepadserver.vcxproj", "{EC4F555A-60B3-4B07-9EA9-DA0E50FA645B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{3FC4F797-2964-4BBC-B901-8672B85B0662}.Debug|Win32.Build.0 = Debug|Win32
 		{3FC4F797-2964-4BBC-B901-8672B85B0662}.Release|Win32.ActiveCfg = Release|Win32
 		{3FC4F797-2964-4BBC-B901-8672B85B0662}.Release|Win32.Build.0 = Release|Win32
+		{EC4F555A-60B3-4B07-9EA9-DA0E50FA645B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EC4F555A-60B3-4B07-9EA9-DA0E50FA645B}.Debug|Win32.Build.0 = Debug|Win32
+		{EC4F555A-60B3-4B07-9EA9-DA0E50FA645B}.Release|Win32.ActiveCfg = Release|Win32
+		{EC4F555A-60B3-4B07-9EA9-DA0E50FA645B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
