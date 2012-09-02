@@ -51,6 +51,13 @@ public:
 
 		return stringbuf.str();
 	}
+
+	char* StringToCharArray(string str){
+		char *s = new char[str.size() + 1];
+		s[str.size()] = 0;
+		memcpy(s, str.c_str(), str.size());
+		return s;
+	}
 };
 
 SensorPacket lastPacket;
@@ -166,9 +173,11 @@ DWORD WINAPI SocketHandler(void* lp){
 	{
 		if (lastSentIndex < lastPacketIndex)
 		{
+			// Send sensor data
 			memset(buffer, 0, buffer_len);
-			if (lastPacket.fingerPresent[0]) strcat_s (buffer, 9, "touched\n");
-			else                             strcat_s (buffer, 13, "not touched\n");
+			string s = lastPacket.JSONRep();
+			strcat_s (buffer, s.size() + 1, lastPacket.StringToCharArray(s));
+
 			if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR)
 			{
 				fprintf(stderr, "Error sending data %d\n", WSAGetLastError());
