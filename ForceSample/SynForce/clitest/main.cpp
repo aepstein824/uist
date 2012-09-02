@@ -10,6 +10,15 @@
 
 #pragma comment(lib, "SynCOM.lib") // For access point SynCreateAPI
 
+class SensorPacket {
+public:
+	int validFingerCount;
+	double corners[4];
+	double fingersX[5];
+	double fingersY[5];
+	double fingersZ[5];
+};
+
 DWORD WINAPI SocketHandler(void*);
 DWORD WINAPI SensorLoop(void *argPointer);
 
