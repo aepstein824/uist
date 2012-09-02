@@ -37,6 +37,15 @@ public:
 		}
 		stringbuf << "],";
 
+		stringbuf << "\"touched\":[";
+		first = true;
+		for (int i = 0; i <5; ++i) {
+			if (!first) stringbuf << ',';
+			first = false;
+			stringbuf << fingerPresent[i];
+		}
+		stringbuf << "],";
+
 		first = true;
 		//write in each finger
 		for (int i = 0; i < 5; ++i) {
@@ -50,13 +59,6 @@ public:
 		stringbuf << '}' << endl;
 
 		return stringbuf.str();
-	}
-
-	char* StringToCharArray(string str){
-		char *s = new char[str.size() + 1];
-		s[str.size()] = 0;
-		memcpy(s, str.c_str(), str.size());
-		return s;
 	}
 };
 
@@ -176,7 +178,7 @@ DWORD WINAPI SocketHandler(void* lp){
 			// Send sensor data
 			memset(buffer, 0, buffer_len);
 			string s = lastPacket.JSONRep();
-			strcat_s (buffer, s.size() + 1, lastPacket.StringToCharArray(s));
+			strcat_s (buffer, s.size() + 1, s.c_str());
 
 			if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR)
 			{
@@ -288,10 +290,7 @@ DWORD WINAPI SensorLoop(void *argPointer)
                 }
             }
 			string str = lastPacket.JSONRep();
-			char *s = new char[str.size() + 1];
-			s[str.size()] = 0;
-			memcpy(s, str.c_str(), str.size());
-			printf(s);
+			printf(str.c_str());
 			lastPacketIndex++;
         }
     }
