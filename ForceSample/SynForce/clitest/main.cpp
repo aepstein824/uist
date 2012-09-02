@@ -19,6 +19,9 @@ public:
 	double fingersZ[5];
 };
 
+SensorPacket latestPacket;
+int latestPacketIndex;
+
 DWORD WINAPI SocketHandler(void*);
 DWORD WINAPI SensorLoop(void *argPointer);
 
@@ -32,11 +35,11 @@ int main(int argv, char** argc){
     WSADATA wsaData;
     int err;
     wVersionRequested = MAKEWORD( 2, 2 );
-     err = WSAStartup( wVersionRequested, &wsaData );
+    err = WSAStartup( wVersionRequested, &wsaData );
     if ( err != 0 || ( LOBYTE( wsaData.wVersion ) != 2 ||
             HIBYTE( wsaData.wVersion ) != 2 )) {
         fprintf(stderr, "Could not find useable sock dll %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
 
     //Initialize sockets and set any options
@@ -45,7 +48,7 @@ int main(int argv, char** argc){
     hsock = socket(AF_INET, SOCK_STREAM, 0);
     if(hsock == -1){
         printf("Error initializing socket %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
     
     p_int = (int*)malloc(sizeof(int));
@@ -54,7 +57,7 @@ int main(int argv, char** argc){
         (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) ){
         printf("Error setting options %d\n", WSAGetLastError());
         free(p_int);
-        goto FINISH;
+        exit (1);
     }
     free(p_int);
 
@@ -69,17 +72,17 @@ int main(int argv, char** argc){
     
     if( bind( hsock, (struct sockaddr*)&my_addr, sizeof(my_addr)) == -1 ){
         fprintf(stderr,"Error binding to socket, make sure nothing else is listening on this port %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
     if(listen( hsock, 10) == -1 ){
         fprintf(stderr, "Error listening %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
     
+	//create the thread that does the sensor stuff
 	CreateThread(0,0,&SensorLoop, NULL , 0,0);
 
     //Now lets to the server stuff
-
     int* csock;
     sockaddr_in sadr;
     int    addr_size = sizeof(SOCKADDR);
@@ -96,9 +99,6 @@ int main(int argv, char** argc){
             fprintf(stderr, "Error accepting %d\n",WSAGetLastError());
         }
     }
-
-FINISH:
-;
 }
 
 DWORD WINAPI SocketHandler(void* lp){
