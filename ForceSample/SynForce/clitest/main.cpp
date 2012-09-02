@@ -114,27 +114,37 @@ int main(int argv, char** argc){
 DWORD WINAPI SocketHandler(void* lp){
     int *csock = (int*)lp;
 
+	int lastSentIndex = -1;
+
     char buffer[1024];
     int buffer_len = 1024;
     int bytecount;
 
-    memset(buffer, 0, buffer_len);
+	/*
+	//no need to receive
     if((bytecount = recv(*csock, buffer, buffer_len, 0))==SOCKET_ERROR){
         fprintf(stderr, "Error receiving data %d\n", WSAGetLastError());
         goto FINISH;
     }
     printf("Received bytes %d\nReceived string \"%s\"\n", bytecount, buffer);
-    strcat(buffer, " SERVER ECHO");
-
-    if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR){
-        fprintf(stderr, "Error sending data %d\n", WSAGetLastError());
-        goto FINISH;
-    }
+	*/
+	while (true)
+	{
+		if (lastSentIndex < lastPacketIndex)
+		{
+			memset(buffer, 0, buffer_len);
+			if (lastPacket.fingerPresent[0]) strcat_s (buffer, 9, "touched\n");
+			else                             strcat_s (buffer, 13, "not touched\n");
+			if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR)
+			{
+				fprintf(stderr, "Error sending data %d\n", WSAGetLastError());
+				break;
+			}
+		}
+		Sleep (17); //1/60
+	}
     
     printf("Sent bytes %d\n", bytecount);
-
-
-FINISH:
     free(csock);
     return 0;
 }
@@ -214,14 +224,14 @@ DWORD WINAPI SensorLoop(void *argPointer)
             lFingerCount = 0;
             for (LONG i = 0; i != lNumMaxReportedFingers; ++i)
             {
-				lastPacket.fingerPresent [i] = true;
-                // Load data into the SynPacket object
+				// Load data into the SynPacket object
                 pGroup->GetPacketByIndex(i, pPacket);
                 // Is there a finger present?
                 LONG lFingerState;
                 pPacket->GetProperty(SP_FingerState, &lFingerState);
                 if (lFingerState & SF_FingerPresent)
                 {
+					lastPacket.fingerPresent [i] = true;
                     ++lFingerCount;
                     // Extract the position and force of the touch
                     LONG lX, lY, lZForce;
