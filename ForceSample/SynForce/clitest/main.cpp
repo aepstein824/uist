@@ -16,8 +16,8 @@ using namespace std;
 
 class SensorPacket {
 public:
-	int validFingerCount;
 	double corners[4];
+	bool fingerPresent[5];
 	double fingersX[5];
 	double fingersY[5];
 	double fingersZ[5];
@@ -53,6 +53,8 @@ public:
 	}
 };
 
+SensorPacket lastPacket;
+int lastPacketIndex;
 
 DWORD WINAPI SocketHandler(void*);
 DWORD WINAPI SensorLoop(void *argPointer);
@@ -67,11 +69,11 @@ int main(int argv, char** argc){
     WSADATA wsaData;
     int err;
     wVersionRequested = MAKEWORD( 2, 2 );
-     err = WSAStartup( wVersionRequested, &wsaData );
+    err = WSAStartup( wVersionRequested, &wsaData );
     if ( err != 0 || ( LOBYTE( wsaData.wVersion ) != 2 ||
             HIBYTE( wsaData.wVersion ) != 2 )) {
         fprintf(stderr, "Could not find useable sock dll %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
 
     //Initialize sockets and set any options
@@ -80,7 +82,7 @@ int main(int argv, char** argc){
     hsock = socket(AF_INET, SOCK_STREAM, 0);
     if(hsock == -1){
         printf("Error initializing socket %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
     
     p_int = (int*)malloc(sizeof(int));
@@ -89,7 +91,7 @@ int main(int argv, char** argc){
         (setsockopt(hsock, SOL_SOCKET, SO_KEEPALIVE, (char*)p_int, sizeof(int)) == -1 ) ){
         printf("Error setting options %d\n", WSAGetLastError());
         free(p_int);
-        goto FINISH;
+        exit (1);
     }
     free(p_int);
 
@@ -104,17 +106,27 @@ int main(int argv, char** argc){
     
     if( bind( hsock, (struct sockaddr*)&my_addr, sizeof(my_addr)) == -1 ){
         fprintf(stderr,"Error binding to socket, make sure nothing else is listening on this port %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
     if(listen( hsock, 10) == -1 ){
         fprintf(stderr, "Error listening %d\n",WSAGetLastError());
-        goto FINISH;
+        exit (1);
     }
     
+	lastPacketIndex = 0;
+	for (int i = 0; i < 5; i++)
+	{
+		lastPacket.corners[i < 4 ? i : 0] = 0.;
+		lastPacket.fingerPresent[i] = false;
+		lastPacket.fingersX[i] = 0.;
+		lastPacket.fingersY[i] = 0.;
+		lastPacket.fingersZ[i] = 0.;
+	}
+
+	//create the thread that does the sensor stuff
 	CreateThread(0,0,&SensorLoop, NULL , 0,0);
 
     //Now lets to the server stuff
-
     int* csock;
     sockaddr_in sadr;
     int    addr_size = sizeof(SOCKADDR);
@@ -131,35 +143,42 @@ int main(int argv, char** argc){
             fprintf(stderr, "Error accepting %d\n",WSAGetLastError());
         }
     }
-
-FINISH:
-;
 }
 
 DWORD WINAPI SocketHandler(void* lp){
     int *csock = (int*)lp;
 
+	int lastSentIndex = -1;
+
     char buffer[1024];
     int buffer_len = 1024;
     int bytecount;
 
-    memset(buffer, 0, buffer_len);
+	/*
+	//no need to receive
     if((bytecount = recv(*csock, buffer, buffer_len, 0))==SOCKET_ERROR){
         fprintf(stderr, "Error receiving data %d\n", WSAGetLastError());
         goto FINISH;
     }
     printf("Received bytes %d\nReceived string \"%s\"\n", bytecount, buffer);
-    strcat(buffer, " SERVER ECHO");
-
-    if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR){
-        fprintf(stderr, "Error sending data %d\n", WSAGetLastError());
-        goto FINISH;
-    }
+	*/
+	while (true)
+	{
+		if (lastSentIndex < lastPacketIndex)
+		{
+			memset(buffer, 0, buffer_len);
+			if (lastPacket.fingerPresent[0]) strcat_s (buffer, 9, "touched\n");
+			else                             strcat_s (buffer, 13, "not touched\n");
+			if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR)
+			{
+				fprintf(stderr, "Error sending data %d\n", WSAGetLastError());
+				break;
+			}
+		}
+		Sleep (17); //1/60
+	}
     
     printf("Sent bytes %d\n", bytecount);
-
-
-FINISH:
     free(csock);
     return 0;
 }
@@ -225,18 +244,28 @@ DWORD WINAPI SensorLoop(void *argPointer)
             for (LONG i = 0; i != 4; ++i)
                 pGroup->GetPropertyByIndex(SP_ForceRaw, i, lForceRaw + i);
             printf("Corner forces (grams) [%+3d, %+3d, %+3d, %+3d]\n", lForceRaw[0], lForceRaw[1], lForceRaw[2], lForceRaw[3]);
-            
+			for (int i = 0; i < 4; i++)
+			{ 
+				lastPacket.corners[i] = lForceRaw[i];
+			}
+
+			for (int i = 0; i < 5; i++)
+			{
+				lastPacket.fingerPresent [i] = false;
+			}
+
             // For each touch (packet)
             lFingerCount = 0;
             for (LONG i = 0; i != lNumMaxReportedFingers; ++i)
             {
-                // Load data into the SynPacket object
+				// Load data into the SynPacket object
                 pGroup->GetPacketByIndex(i, pPacket);
                 // Is there a finger present?
                 LONG lFingerState;
                 pPacket->GetProperty(SP_FingerState, &lFingerState);
                 if (lFingerState & SF_FingerPresent)
                 {
+					lastPacket.fingerPresent [i] = true;
                     ++lFingerCount;
                     // Extract the position and force of the touch
                     LONG lX, lY, lZForce;
@@ -244,8 +273,12 @@ DWORD WINAPI SensorLoop(void *argPointer)
                     pPacket->GetProperty(SP_Y, &lY);
                     pPacket->GetProperty(SP_ZForce, &lZForce);
                     printf("    Touch %d: Coordinates (%4d, %4d), force +%3d grams\n", i, lX, lY, lZForce);
+					lastPacket.fingersX[i] = lX;
+					lastPacket.fingersY[i] = lY;
+					lastPacket.fingersZ[i] = lZForce;
                 }
             }
+			lastPacketIndex++;
         }
     }
     while (lFingerCount < lNumMaxReportedFingers);
