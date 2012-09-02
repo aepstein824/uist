@@ -35,19 +35,19 @@ public:
 			first = false;
 			stringbuf << corners[i];
 		}
-		stringbuf << '],';
+		stringbuf << "],";
 
 		first = true;
 		//write in each finger
 		for (int i = 0; i < 5; ++i) {
 			if (!first) stringbuf << ',';
 			first = false;
-			stringbuf << '\"' << i << '\":[';
+			stringbuf << '\"' << i << "\":[";
 			stringbuf << fingersX[i] << ',';
 			stringbuf << fingersY[i] << ',';
 			stringbuf << fingersZ[i] << ']';
 		}
-		stringbuf << '}';
+		stringbuf << '}' << endl;
 
 		return stringbuf.str();
 	}
@@ -278,6 +278,11 @@ DWORD WINAPI SensorLoop(void *argPointer)
 					lastPacket.fingersZ[i] = lZForce;
                 }
             }
+			string str = lastPacket.JSONRep();
+			char *s = new char[str.size() + 1];
+			s[str.size()] = 0;
+			memcpy(s, str.c_str(), str.size());
+			printf(s);
 			lastPacketIndex++;
         }
     }
