@@ -12,15 +12,15 @@
 
 class SensorPacket {
 public:
-	int validFingerCount;
 	double corners[4];
+	bool fingerPresent[5];
 	double fingersX[5];
 	double fingersY[5];
 	double fingersZ[5];
 };
 
-SensorPacket latestPacket;
-int latestPacketIndex;
+SensorPacket lastPacket;
+int lastPacketIndex;
 
 DWORD WINAPI SocketHandler(void*);
 DWORD WINAPI SensorLoop(void *argPointer);
@@ -79,6 +79,16 @@ int main(int argv, char** argc){
         exit (1);
     }
     
+	lastPacketIndex = 0;
+	for (int i = 0; i < 5; i++)
+	{
+		lastPacket.corners[i < 4 ? i : 0] = 0.;
+		lastPacket.fingerPresent[i] = false;
+		lastPacket.fingersX[i] = 0.;
+		lastPacket.fingersY[i] = 0.;
+		lastPacket.fingersZ[i] = 0.;
+	}
+
 	//create the thread that does the sensor stuff
 	CreateThread(0,0,&SensorLoop, NULL , 0,0);
 
@@ -190,11 +200,21 @@ DWORD WINAPI SensorLoop(void *argPointer)
             for (LONG i = 0; i != 4; ++i)
                 pGroup->GetPropertyByIndex(SP_ForceRaw, i, lForceRaw + i);
             printf("Corner forces (grams) [%+3d, %+3d, %+3d, %+3d]\n", lForceRaw[0], lForceRaw[1], lForceRaw[2], lForceRaw[3]);
-            
+			for (int i = 0; i < 4; i++)
+			{ 
+				lastPacket.corners[i] = lForceRaw[i];
+			}
+
+			for (int i = 0; i < 5; i++)
+			{
+				lastPacket.fingerPresent [i] = false;
+			}
+
             // For each touch (packet)
             lFingerCount = 0;
             for (LONG i = 0; i != lNumMaxReportedFingers; ++i)
             {
+				lastPacket.fingerPresent [i] = true;
                 // Load data into the SynPacket object
                 pGroup->GetPacketByIndex(i, pPacket);
                 // Is there a finger present?
@@ -209,8 +229,12 @@ DWORD WINAPI SensorLoop(void *argPointer)
                     pPacket->GetProperty(SP_Y, &lY);
                     pPacket->GetProperty(SP_ZForce, &lZForce);
                     printf("    Touch %d: Coordinates (%4d, %4d), force +%3d grams\n", i, lX, lY, lZForce);
+					lastPacket.fingersX[i] = lX;
+					lastPacket.fingersY[i] = lY;
+					lastPacket.fingersZ[i] = lZForce;
                 }
             }
+			lastPacketIndex++;
         }
     }
     while (lFingerCount < lNumMaxReportedFingers);
