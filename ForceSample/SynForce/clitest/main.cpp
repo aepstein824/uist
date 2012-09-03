@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
+#include <string>
+#include <sstream>
+
+using namespace std;
 
 #pragma comment(lib, "SynCOM.lib") // For access point SynCreateAPI
 
@@ -17,6 +21,45 @@ public:
 	double fingersX[5];
 	double fingersY[5];
 	double fingersZ[5];
+
+	string JSONRep() {
+		// Write in JSON as {corners:[c0,c1,c2,c3] , 0:[x,y,z], ..., 4:[x,y,z]}
+		stringstream stringbuf = stringstream();
+		stringbuf.precision(10);
+
+		//Get corner forces
+		bool first = true;
+		stringbuf << "{\"corners\":[";
+		for (int i = 0; i < 4; ++i) {
+			if (!first) stringbuf << ',';
+			first = false;
+			stringbuf << corners[i];
+		}
+		stringbuf << "],";
+
+		stringbuf << "\"touched\":[";
+		first = true;
+		for (int i = 0; i <5; ++i) {
+			if (!first) stringbuf << ',';
+			first = false;
+			stringbuf << fingerPresent[i];
+		}
+		stringbuf << "],";
+
+		first = true;
+		//write in each finger
+		for (int i = 0; i < 5; ++i) {
+			if (!first) stringbuf << ',';
+			first = false;
+			stringbuf << '\"' << i << "\":[";
+			stringbuf << fingersX[i] << ',';
+			stringbuf << fingersY[i] << ',';
+			stringbuf << fingersZ[i] << ']';
+		}
+		stringbuf << '}' << endl;
+
+		return stringbuf.str();
+	}
 };
 
 SensorPacket lastPacket;
@@ -132,9 +175,11 @@ DWORD WINAPI SocketHandler(void* lp){
 	{
 		if (lastSentIndex < lastPacketIndex)
 		{
+			// Send sensor data
 			memset(buffer, 0, buffer_len);
-			if (lastPacket.fingerPresent[0]) strcat_s (buffer, 9, "touched\n");
-			else                             strcat_s (buffer, 13, "not touched\n");
+			string s = lastPacket.JSONRep();
+			strcat_s (buffer, s.size() + 1, s.c_str());
+
 			if((bytecount = send(*csock, buffer, strlen(buffer), 0))==SOCKET_ERROR)
 			{
 				fprintf(stderr, "Error sending data %d\n", WSAGetLastError());
@@ -244,6 +289,8 @@ DWORD WINAPI SensorLoop(void *argPointer)
 					lastPacket.fingersZ[i] = lZForce;
                 }
             }
+			string str = lastPacket.JSONRep();
+			printf(str.c_str());
 			lastPacketIndex++;
         }
     }
