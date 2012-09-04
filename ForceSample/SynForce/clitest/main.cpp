@@ -51,7 +51,7 @@ public:
 		for (int i = 0; i < 5; ++i) {
 			if (!first) stringbuf << ',';
 			first = false;
-			stringbuf << '\"' << i << "\":[";
+			stringbuf << '\"' << 'f' << i << "\":[";
 			stringbuf << fingersX[i] << ',';
 			stringbuf << fingersY[i] << ',';
 			stringbuf << fingersZ[i] << ']';
