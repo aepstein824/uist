@@ -4,3 +4,13 @@ obj
 
 # mstest test results
 TestResults
+# Aaron added these
+*.user
+*.exe
+Debug*
+Release*
+ipch*
+*.sdf
+*.opensdf
+*.suo
+log*
