@@ -111,8 +111,9 @@ namespace DeserializeJSONFromNetwork
             base.OnRenderFrame(e);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Disable(EnableCap.DepthTest);
 
-            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -4.0f), Vector3.UnitZ, Vector3.UnitY);
+            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -10.0f), Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
