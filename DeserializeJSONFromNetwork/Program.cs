@@ -115,7 +115,13 @@ namespace DeserializeJSONFromNetwork
             Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -4.0f), Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
-            
+
+            GL.Enable(EnableCap.Lighting);
+            GL.Enable(EnableCap.Light0);
+            GL.Enable(EnableCap.ColorMaterial);
+            GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
+            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
             GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
             test.DrawSelf();
 
