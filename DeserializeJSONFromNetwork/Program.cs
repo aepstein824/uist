@@ -34,6 +34,7 @@ namespace DeserializeJSONFromNetwork
             return outstring.ToString();
         }
     }
+    
     class Program
     {
         static void Main(string[] args)
@@ -41,13 +42,17 @@ namespace DeserializeJSONFromNetwork
             WebClient webClient = new WebClient();
             string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
             TcpClient client = new TcpClient(IPaddress, 1101);
+            GestureGenerator generator = new GestureGenerator();
             TextReader reader = new StreamReader(client.GetStream());
             while (true)
             {
                 string data = reader.ReadLine();
                 //Console.WriteLine(data);
                 SensorData sensor = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData>(data);
-                Console.WriteLine(sensor);
+                if (sensor == null)
+                    continue;
+                generator.ReceiveData(sensor);
+                //Console.WriteLine(sensor);
             }
         }
     }
