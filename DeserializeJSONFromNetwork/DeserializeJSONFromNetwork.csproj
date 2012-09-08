@@ -46,10 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions.cs" />
-    <Compile Include="FingerDownGesture.cs" />
     <Compile Include="Gesture.cs" />
     <Compile Include="GestureGenerator.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="ImmutableDeque.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

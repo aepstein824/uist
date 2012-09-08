@@ -5,28 +5,19 @@ using System.Text;
 
 namespace DeserializeJSONFromNetwork
 {
-    enum GestureStatus
-    {
-        Move,
-        Appear,
-        Vanish,
-    }
-
-    enum GestureType
-    {
-        FingerDown,
-    }
-
-    abstract class GestureBuilder
-    {
-        public abstract void GenerateGesture(GestureGenerator gen);
-    }
-
     class Gesture
     {
-        public GestureType Type;
-        public GestureStatus Status;
+        public GestureGenerator.State State;
+        public GestureGenerator.EventType EventType;
         public DateTime StartTime;
-        public DateTime EndTime;
+        public IDeque<SensorData> DataSinceGestureStart;
+
+        public Gesture(GestureGenerator.State state, GestureGenerator.EventType eventType, DateTime startTime, IDeque<SensorData> dataSinceGestureStart)
+        {
+            DataSinceGestureStart = dataSinceGestureStart;
+            StartTime = startTime;
+            State = state;
+            EventType = eventType;
+        }
     }
 }

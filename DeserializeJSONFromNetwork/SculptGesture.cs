@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DeserializeJSONFromNetwork
 {
-    class FingerDownGestureBuilder : GestureBuilder
+    class SculptGestureBuilder : GestureBuilder
     {
         DateTime startTime;
 
@@ -42,13 +42,14 @@ namespace DeserializeJSONFromNetwork
         }
     }
 
-    class FingerDownGesture : Gesture
+    class SculptGesture : Gesture
     {
-        public int FingerNum;
-
-        public FingerDownGesture(int fingerNum)
+        public GestureType Type
         {
-            FingerNum = fingerNum;
+            get
+            {
+                return GestureType.Sculpt;
+            }
         }
 
         public override string ToString()

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Collections.Concurrent;
 
 namespace DeserializeJSONFromNetwork
 {
@@ -33,6 +35,36 @@ namespace DeserializeJSONFromNetwork
             outstring.Append("}");
             return outstring.ToString();
         }
+
+
+        /* Counts how many of the first fingers are currently touching.
+         */
+        public int FingerCount()
+        {
+            int c = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                if (touched[i])
+                {
+                    c++;
+                }
+                else
+                {
+                    return c;
+                }
+            }
+            return c;
+        }
+
+        /* Returns the distance, in touchpad pixels, between two fingers currently touching.
+         * 
+         */
+        public double Distance()
+        {
+            double dx = f0[0] - f1[0];
+            double dy = f0[1] - f1[1];
+            return System.Math.Sqrt(dx * dx + dy * dy);
+        }
     }
     
     class Program
@@ -44,16 +76,45 @@ namespace DeserializeJSONFromNetwork
             TcpClient client = new TcpClient(IPaddress, 1101);
             GestureGenerator generator = new GestureGenerator();
             TextReader reader = new StreamReader(client.GetStream());
-            while (true)
+            GestureGenerator gestureGenerator = new GestureGenerator();
+            Thread generateGesturesThread = new Thread(() =>
             {
-                string data = reader.ReadLine();
-                //Console.WriteLine(data);
-                SensorData sensor = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData>(data);
-                if (sensor == null)
-                    continue;
-                generator.ReceiveData(sensor);
-                //Console.WriteLine(sensor);
-            }
+                while (true)
+                {
+                    string data = reader.ReadLine();
+                    SensorData sensor = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData>(data);
+                    if (sensor == null)
+                        continue;
+                    gestureGenerator.HandleSensorData(sensor);
+                }
+            });
+            generateGesturesThread.Start();
+            Thread consumeGesturesThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    Gesture gesture;
+                    if (!gestureGenerator.gestures.TryDequeue(out gesture))
+                        continue;
+                    Console.WriteLine(gesture.StartTime);
+                    Console.WriteLine(gesture.EventType);
+                    Console.WriteLine(gesture.DataSinceGestureStart.ForwardIterate().Count());
+                    /*
+                     * Code below illustrates how you can get all the sensor data since the start of the gesture,
+                     * both forward in time chronologically, and backward in time.
+                     * 
+                    foreach (SensorData x in gesture.DataSinceGestureStart.ForwardIterate())
+                    {
+                        Console.WriteLine(x);
+                    }
+                    foreach (SensorData x in gesture.DataSinceGestureStart.ReverseIterate())
+                    {
+                        Console.WriteLine(x);
+                    }
+                    */
+                }
+            });
+            consumeGesturesThread.Start();
         }
     }
 }
