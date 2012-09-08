@@ -39,19 +39,47 @@ namespace DeserializeJSONFromNetwork
             this.vertices = new Vector3[horizontalTess * verticalTess];
             this.normals = new Vector3[horizontalTess * verticalTess];
             this.RealizeParametersIntoVertices();
-            this.elements = new UInt32[(4 * (horizontalTess - 1) * (verticalTess - 1))];
+            UInt32 hcount = horizontalTess - (UInt32)(Closed() ? 0 : 1);
+            UInt32 vcount = verticalTess - (UInt32)(Closed() ? 0 : 1);
+            this.elements = new UInt32[(4 * (hcount) * (vcount))];
             int elementIndex = 0;
             for (UInt32 i = 0; i < horizontalTess - 1; i++)
             {
                 for (UInt32 j = 0; j < verticalTess - 1; j++)
                 {
-                    elements[elementIndex + 0] = i + 0 + (j + 0) * verticalTess;
-                    elements[elementIndex + 1] = i + 1 + (j + 0) * verticalTess;
-                    elements[elementIndex + 2] = i + 1 + (j + 1) * verticalTess;
-                    elements[elementIndex + 3] = i + 0 + (j + 1) * verticalTess;
-                    elementIndex += 4;
+                    elements[elementIndex++] = i + 0 + (j + 0) * horizontalTess;
+                    elements[elementIndex++] = i + 1 + (j + 0) * horizontalTess;
+                    elements[elementIndex++] = i + 1 + (j + 1) * horizontalTess;
+                    elements[elementIndex++] = i + 0 + (j + 1) * horizontalTess;
                 }
             }
+            //for closed meshes, link the last and first vertices
+            if (Closed ())
+            {
+                //do the bottom row, excluding the bottom right corner
+                for (UInt32 i = 0; i < horizontalTess - 1; i++)
+                {
+
+                    elements[elementIndex++] = i + 0 + (horizontalTess - 1) * horizontalTess;
+                    elements[elementIndex++] = i + 1 + (horizontalTess - 1) * horizontalTess;
+                    elements[elementIndex++] = i + 1;
+                    elements[elementIndex++] = i + 0;
+                }
+                // do the last column
+                for (UInt32 j = 0; j < verticalTess - 1; j++)
+                {
+                    elements[elementIndex++] = horizontalTess - 1 + (j + 0) * horizontalTess;
+                    elements[elementIndex++] = 0 + (j + 0) * horizontalTess;
+                    elements[elementIndex++] = 0 + (j + 1) * horizontalTess;
+                    elements[elementIndex++] = horizontalTess - 1 + (j + 1) * horizontalTess;
+                }
+                // close bottom corner
+                elements[elementIndex++] = horizontalTess - 1 + (verticalTess - 1) * horizontalTess;
+                elements[elementIndex++] = 0 + (verticalTess - 1) * horizontalTess;
+                elements[elementIndex++] = 0;
+                elements[elementIndex++] = horizontalTess - 1;
+            }
+
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, eboid);
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elements.Length * sizeof(UInt32)), elements, BufferUsageHint.StaticDraw);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
@@ -87,7 +115,7 @@ namespace DeserializeJSONFromNetwork
             {
                 for (int j = 0; j < verticalTess; j++)
                 {
-                    this.vertices[i + j * verticalTess] = VertexFromParameters(parameters[i, j]);
+                    this.vertices[i + j * horizontalTess] = VertexFromParameters(parameters[i, j]);
                 }
             }
             for (UInt32 i = 0; i < horizontalTess; i++)
@@ -115,14 +143,14 @@ namespace DeserializeJSONFromNetwork
                             edgeSign *= -1;
                         }
                     }
-                    Vector3 thisOne = vertices[i + j * verticalTess];
-                    Vector3 oneUnder = vertices[i + underj * verticalTess];
+                    Vector3 thisOne = vertices[i + j * horizontalTess];
+                    Vector3 oneUnder = vertices[i + underj * horizontalTess];
                     Vector3 toUnder = oneUnder - thisOne;
-                    Vector3 oneOver = vertices[overi + j * verticalTess];
+                    Vector3 oneOver = vertices[overi + j * horizontalTess];
                     Vector3 toOver = oneOver - thisOne;
                     Vector3 norm = Vector3.Cross(toUnder, toOver);
                     norm.Normalize();
-                    this.normals[i + j * verticalTess] = edgeSign * norm;
+                    this.normals[i + j * horizontalTess] = edgeSign * norm;
                 }
             }
         }
