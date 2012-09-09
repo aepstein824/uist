@@ -22,9 +22,8 @@ namespace DeserializeJSONFromNetwork
             Vector3 cp = CylinderParams(p);
             return new Vector3(
                 cp.Y * (float)Math.Cos(cp.X), 
-                
-                -1 * cp.Z,
-                cp.Y * (float)Math.Sin(cp.X)
+                cp.Y * (float)Math.Sin(cp.X),
+                cp.Z
                 );
         }
 
@@ -36,14 +35,14 @@ namespace DeserializeJSONFromNetwork
             Vector3 cp = CylinderParams(p);
             return new Vector3(
                 (float)Math.Sin(-1 * cp.X), 
-                0.0f,
-                (float)Math.Cos(cp.X)
+                (float)Math.Cos(cp.X),
+                0.0f
                 ); 
         }
 
         public override Vector3 UnitB(Vector3 p)
         {
-            return new Vector3(0.0f, -1 * 1.0f, 0.0f);
+            return new Vector3(0.0f, 0.0f, 1.0f);
         }
 
         public override Vector3 UnitC(Vector3 p)
@@ -51,9 +50,8 @@ namespace DeserializeJSONFromNetwork
             Vector3 cp = CylinderParams(p);
             return new Vector3(
                 (float)Math.Cos(cp.X),
-
-                0.0f,
-                (float)Math.Sin(cp.X)
+                (float)Math.Sin(cp.X),
+                0.0f
                 );
         }
     }
