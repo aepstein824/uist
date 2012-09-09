@@ -39,7 +39,7 @@ namespace DeserializeJSONFromNetwork
         public override bool ClosedA() { return true; }
         public override bool ClosedB() { return true; }
 
-        public override float Epsilon() { return 5f; }
+        public override float Epsilon() { return 0.0001f; }
 
         public override Vector3 UnitA(Vector3 p) 
         {
