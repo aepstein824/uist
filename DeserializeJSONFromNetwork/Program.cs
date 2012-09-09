@@ -52,7 +52,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new SphericalMesh(20, 20);
+            test = new TorusMesh(20, 20);
             VSync = VSyncMode.On;
         }
 
