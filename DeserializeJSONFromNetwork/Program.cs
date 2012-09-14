@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.IO;
 using System.Collections.Concurrent;
 
+using System.Windows;
+
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -169,13 +171,14 @@ namespace DeserializeJSONFromNetwork
         static void Main(string[] args)
         {
             // web code
-            WebClient webClient = new WebClient();
-            string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
-            TcpClient client = new TcpClient(IPaddress, 1101);
-            TextReader reader = new StreamReader(client.GetStream());
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
             {
+                WebClient webClient = new WebClient();
+                webClient.Proxy = null;
+                string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                TcpClient client = new TcpClient(IPaddress, 1101);
+                TextReader reader = new StreamReader(client.GetStream());
                 while (true)
                 {
                     string data = reader.ReadLine();
@@ -216,6 +219,12 @@ namespace DeserializeJSONFromNetwork
             // The 'using' idiom guarantees proper resource cleanup.
             // We request 30 UpdateFrame events per second, and unlimited
             // RenderFrame events (as fast as the computer can handle).
+            /*
+            Application app = new Application();
+            app.MainWindow = new PaintWindow();
+            app.MainWindow.Show();
+            app.Run();
+            */
             using (Program game = new Program())
             {
                 game.Run(30.0);
