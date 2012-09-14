@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.IO;
 using System.Collections.Concurrent;
 
+using System.Windows;
+
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -130,7 +132,7 @@ namespace DeserializeJSONFromNetwork
                     {
                         test.parameters[i, j].Z -= .1f;
                     }
-                } 
+                }
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -152,10 +154,11 @@ namespace DeserializeJSONFromNetwork
 
             GL.Enable(EnableCap.Lighting);
             GL.Enable(EnableCap.Light0);
-
+            GL.Enable(EnableCap.ColorMaterial);
+            GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
             GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
             GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
-
+            GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
             test.DrawSelf();
 
             SwapBuffers();
@@ -167,17 +170,15 @@ namespace DeserializeJSONFromNetwork
         [STAThread]
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello");
             // web code
-            WebClient webClient = new WebClient();
-            webClient.Proxy = null;
-            string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
-            Console.WriteLine("IP received");
-            TcpClient client = new TcpClient(IPaddress, 1101);
-            TextReader reader = new StreamReader(client.GetStream());
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
             {
+                WebClient webClient = new WebClient();
+                webClient.Proxy = null;
+                string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                TcpClient client = new TcpClient(IPaddress, 1101);
+                TextReader reader = new StreamReader(client.GetStream());
                 while (true)
                 {
                     string data = reader.ReadLine();
@@ -215,10 +216,15 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             consumeGesturesThread.Start();
-            Console.WriteLine("threads started");
             // The 'using' idiom guarantees proper resource cleanup.
             // We request 30 UpdateFrame events per second, and unlimited
             // RenderFrame events (as fast as the computer can handle).
+            /*
+            Application app = new Application();
+            app.MainWindow = new PaintWindow();
+            app.MainWindow.Show();
+            app.Run();
+            */
             using (Program game = new Program())
             {
                 game.Run(30.0);
