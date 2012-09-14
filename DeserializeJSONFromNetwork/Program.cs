@@ -74,7 +74,6 @@ namespace DeserializeJSONFromNetwork
             WebClient webClient = new WebClient();
             string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
             TcpClient client = new TcpClient(IPaddress, 1101);
-            GestureGenerator generator = new GestureGenerator();
             TextReader reader = new StreamReader(client.GetStream());
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
@@ -96,6 +95,7 @@ namespace DeserializeJSONFromNetwork
                     Gesture gesture;
                     if (!gestureGenerator.gestures.TryDequeue(out gesture))
                         continue;
+                    Console.WriteLine(gesture.State);
                     Console.WriteLine(gesture.StartTime);
                     Console.WriteLine(gesture.EventType);
                     Console.WriteLine(gesture.DataSinceGestureStart.ForwardIterate().Count());
