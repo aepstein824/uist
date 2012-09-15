@@ -15,5 +15,23 @@ namespace DeserializeJSONFromNetwork
             output.Append("]");
             return output.ToString();
         }
+
+        public static IEnumerable<T> ForwardIterate<T>(this IDeque<T> dequeue)
+        {
+            while (!dequeue.IsEmpty)
+            {
+                yield return dequeue.PeekLeft();
+                dequeue = dequeue.DequeueLeft();
+            }
+        }
+
+        public static IEnumerable<T> ReverseIterate<T>(this IDeque<T> dequeue)
+        {
+            while (!dequeue.IsEmpty)
+            {
+                yield return dequeue.PeekRight();
+                dequeue = dequeue.DequeueRight();
+            }
+        }
     }
 }

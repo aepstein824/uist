@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using System.Collections.Concurrent;
+
+using System.Windows;
 
 using OpenTK;
 using OpenTK.Graphics;
@@ -40,8 +44,37 @@ namespace DeserializeJSONFromNetwork
             outstring.Append("}"); 
             return outstring.ToString();
         }
-    }
 
+
+        /* Counts how many of the first fingers are currently touching.
+         */
+        public int FingerCount()
+        {
+            int c = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                if (touched[i])
+                {
+                    c++;
+                }
+                else
+                {
+                    return c;
+                }
+            }
+            return c;
+        }
+
+        /* Returns the distance, in touchpad pixels, between two fingers currently touching.
+         * 
+         */
+        public double Distance()
+        {
+            double dx = f0[0] - f1[0];
+            double dy = f0[1] - f1[1];
+            return System.Math.Sqrt(dx * dx + dy * dy);
+        }
+    }
 
     class Program : GameWindow
     {
@@ -52,7 +85,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new TorusMesh(20, 20);
+            test = new SphericalMesh(50, 50);
             VSync = VSyncMode.On;
         }
 
@@ -100,6 +133,24 @@ namespace DeserializeJSONFromNetwork
                         test.parameters[i, j].Z -= .1f;
                     }
                 }
+            Vector2 areaMove = new Vector2 ();
+            if (Keyboard[Key.Left])
+            {
+                areaMove.X += -.1f;
+            }
+            if (Keyboard[Key.Right])
+            {
+                areaMove.X += .1f;
+            }
+            if (Keyboard[Key.Up])
+            {
+                areaMove.Y += .1f;
+            }
+            if (Keyboard[Key.Down])
+            {
+                areaMove.Y += -.1f;
+            }
+            test.activeAreaStart += areaMove;
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -137,22 +188,61 @@ namespace DeserializeJSONFromNetwork
         [STAThread]
         static void Main(string[] args)
         {
-            /* web code
-            WebClient webClient = new WebClient();
-            string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
-            TcpClient client = new TcpClient(IPaddress, 1101);
-            TextReader reader = new StreamReader(client.GetStream());
-            while (true)
+            // web code
+            GestureGenerator gestureGenerator = new GestureGenerator();
+            Thread generateGesturesThread = new Thread(() =>
             {
-                string data = reader.ReadLine();
-                //Console.WriteLine(data);
-                SensorData sensor = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData>(data);
-                //Console.WriteLine(sensor);
-            }
-            */
+                WebClient webClient = new WebClient();
+                webClient.Proxy = null;
+                string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                TcpClient client = new TcpClient(IPaddress, 1101);
+                TextReader reader = new StreamReader(client.GetStream());
+                while (true)
+                {
+                    string data = reader.ReadLine();
+                    SensorData sensor = Newtonsoft.Json.JsonConvert.DeserializeObject<SensorData>(data);
+                    if (sensor == null)
+                        continue;
+                    gestureGenerator.HandleSensorData(sensor);
+                }
+            });
+            generateGesturesThread.Start();
+            Thread consumeGesturesThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    Gesture gesture;
+                    if (!gestureGenerator.gestures.TryDequeue(out gesture))
+                        continue;
+                    Console.WriteLine(gesture.State);
+                    Console.WriteLine(gesture.StartTime);
+                    Console.WriteLine(gesture.EventType);
+                    Console.WriteLine(gesture.DataSinceGestureStart.ForwardIterate().Count());
+                    /*
+                     * Code below illustrates how you can get all the sensor data since the start of the gesture,
+                     * both forward in time chronologically, and backward in time.
+                     * 
+                    foreach (SensorData x in gesture.DataSinceGestureStart.ForwardIterate())
+                    {
+                        Console.WriteLine(x);
+                    }
+                    foreach (SensorData x in gesture.DataSinceGestureStart.ReverseIterate())
+                    {
+                        Console.WriteLine(x);
+                    }
+                    */
+                }
+            });
+            consumeGesturesThread.Start();
             // The 'using' idiom guarantees proper resource cleanup.
             // We request 30 UpdateFrame events per second, and unlimited
             // RenderFrame events (as fast as the computer can handle).
+            /*
+            Application app = new Application();
+            app.MainWindow = new PaintWindow();
+            app.MainWindow.Show();
+            app.Run();
+            */
             using (Program game = new Program())
             {
                 game.Run(30.0);
