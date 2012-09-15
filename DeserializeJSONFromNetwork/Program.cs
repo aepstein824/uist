@@ -85,7 +85,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new SphericalMesh(50, 50);
+            test = new SphericalMesh(80, 80);
             VSync = VSyncMode.On;
         }
 
@@ -151,6 +151,9 @@ namespace DeserializeJSONFromNetwork
                 areaMove.Y += -.1f;
             }
             test.activeAreaStart += areaMove;
+            CalculateDeform deform = new CalculateDeform(test);
+            deform.updateParameters();
+
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -206,7 +209,7 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            generateGesturesThread.Start();
+            //generateGesturesThread.Start();
             Thread consumeGesturesThread = new Thread(() =>
             {
                 while (true)

@@ -11,7 +11,7 @@ namespace DeserializeJSONFromNetwork
 {
     abstract class Mesh
     {
-        public Vector3[,] parameters;
+        public Vector3[,] parameters, parametersPrePoke, mask;
         public Vector3[] vertices;
         public Vector3[] normals;
         public Color4[] colors;
@@ -33,14 +33,18 @@ namespace DeserializeJSONFromNetwork
             this.verticalTess = verticalTess;
             this.horizontalTess = horizontalTess;
             this.parameters = new Vector3[horizontalTess, verticalTess];
+            this.parametersPrePoke = new Vector3[horizontalTess, verticalTess];
+            this.mask = new Vector3[horizontalTess, verticalTess];
             this.colors = new Color4[horizontalTess * verticalTess];
             for (int i = 0; i < horizontalTess; i++)
             {
-                float a = 2.0f * (i / ((float)horizontalTess - (ClosedA() ? 0.0f : 1.0f)) - .5f);
                 for (int j = 0; j < verticalTess; j++)
                 {
-                    float b = 2.0f * (j / ((float)verticalTess - (ClosedB() ? 0.0f : 1.0f)) - .5f);
-                    this.parameters[i, j] = new Vector3(a, b, .5f);
+                    Vector2 scaledCoord = indexCoordinateToScaledCoordinate(i,j);
+
+                    this.parameters[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
+                    this.parametersPrePoke[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
+                    this.mask[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
                 }
             }
             this.vertices = new Vector3[horizontalTess * verticalTess];
@@ -96,6 +100,13 @@ namespace DeserializeJSONFromNetwork
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, eboid);
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elements.Length * sizeof(UInt32)), elements, BufferUsageHint.StaticDraw);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+        }
+
+        public Vector2 indexCoordinateToScaledCoordinate(int i, int j)
+        {
+            float a = 2.0f * (i / ((float)horizontalTess - (ClosedA() ? 0.0f : 1.0f)) - .5f);
+            float b = 2.0f * (j / ((float)verticalTess - (ClosedB() ? 0.0f : 1.0f)) - .5f);
+            return new Vector2(a, b);
         }
 
         public void DrawSelf()
