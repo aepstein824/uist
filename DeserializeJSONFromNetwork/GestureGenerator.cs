@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace DeserializeJSONFromNetwork
 {
-    class GestureGenerator
+    public class GestureGenerator
     {
         public enum State
         {

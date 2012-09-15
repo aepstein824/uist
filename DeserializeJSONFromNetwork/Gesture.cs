@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DeserializeJSONFromNetwork
 {
-    class Gesture
+    public class Gesture
     {
         public GestureGenerator.State State;
         public GestureGenerator.EventType EventType;

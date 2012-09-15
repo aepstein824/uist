@@ -19,62 +19,7 @@ using OpenTK.Input;
 
 namespace DeserializeJSONFromNetwork
 {
-    class SensorData
-    {
-        public double[] corners; // length 4: corners 0-3
-        public bool[] touched; // length 5: fingers 0-4
-        public double[] f0; // length 3: coordinates x,y,z
-        public double[] f1; // length 3: coordinates x,y,z
-        public double[] f2; // length 3: coordinates x,y,z
-        public double[] f3; // length 3: coordinates x,y,z
-
-        public override string ToString()
-        {
-            List<string> output = new List<string>();
-            output.Add("corners: ");
-            output.Add(corners.PrintArray());
-            output.Add(touched.PrintArray());
-            output.Add(f0.PrintArray());
-            output.Add(f1.PrintArray());
-            output.Add(f2.PrintArray());
-            output.Add(f3.PrintArray());
-            StringBuilder outstring = new StringBuilder();
-            outstring.Append("{");
-            outstring.Append(String.Join(",", String.Join(",", output)));
-            outstring.Append("}"); 
-            return outstring.ToString();
-        }
-
-
-        /* Counts how many of the first fingers are currently touching.
-         */
-        public int FingerCount()
-        {
-            int c = 0;
-            for (int i = 0; i < 5; i++)
-            {
-                if (touched[i])
-                {
-                    c++;
-                }
-                else
-                {
-                    return c;
-                }
-            }
-            return c;
-        }
-
-        /* Returns the distance, in touchpad pixels, between two fingers currently touching.
-         * 
-         */
-        public double Distance()
-        {
-            double dx = f0[0] - f1[0];
-            double dy = f0[1] - f1[1];
-            return System.Math.Sqrt(dx * dx + dy * dy);
-        }
-    }
+    
 
     class Program : GameWindow
     {
@@ -189,17 +134,29 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             generateGesturesThread.Start();
+            PaintWindow paintWindow = new PaintWindow();
             Thread consumeGesturesThread = new Thread(() =>
             {
+                //paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
+                //{
+                //    paintWindow.SetRed();
+                //}));
                 while (true)
                 {
                     Gesture gesture;
                     if (!gestureGenerator.gestures.TryDequeue(out gesture))
                         continue;
+                    paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
+                    {
+                        paintWindow.ConsumeGesture(gesture);
+                    }));
+                    /*
                     Console.WriteLine(gesture.State);
                     Console.WriteLine(gesture.StartTime);
                     Console.WriteLine(gesture.EventType);
                     Console.WriteLine(gesture.DataSinceGestureStart.ForwardIterate().Count());
+                    */
+
                     /*
                      * Code below illustrates how you can get all the sensor data since the start of the gesture,
                      * both forward in time chronologically, and backward in time.
@@ -219,16 +176,17 @@ namespace DeserializeJSONFromNetwork
             // The 'using' idiom guarantees proper resource cleanup.
             // We request 30 UpdateFrame events per second, and unlimited
             // RenderFrame events (as fast as the computer can handle).
-            /*
+            
             Application app = new Application();
-            app.MainWindow = new PaintWindow();
-            app.MainWindow.Show();
+            app.MainWindow = paintWindow;
+            paintWindow.Show();
             app.Run();
-            */
+            /*
             using (Program game = new Program())
             {
                 game.Run(30.0);
             }
+            */
         }
     }
 }
