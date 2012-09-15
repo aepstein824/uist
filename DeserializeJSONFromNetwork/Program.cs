@@ -85,7 +85,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new TorusMesh(20, 20);
+            test = new SphericalMesh(50, 50);
             VSync = VSyncMode.On;
         }
 
@@ -133,6 +133,24 @@ namespace DeserializeJSONFromNetwork
                         test.parameters[i, j].Z -= .1f;
                     }
                 }
+            Vector2 areaMove = new Vector2 ();
+            if (Keyboard[Key.Left])
+            {
+                areaMove.X += -.1f;
+            }
+            if (Keyboard[Key.Right])
+            {
+                areaMove.X += .1f;
+            }
+            if (Keyboard[Key.Up])
+            {
+                areaMove.Y += .1f;
+            }
+            if (Keyboard[Key.Down])
+            {
+                areaMove.Y += -.1f;
+            }
+            test.activeAreaStart += areaMove;
             if (Keyboard[Key.Escape])
                 Exit();
         }

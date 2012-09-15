@@ -18,9 +18,13 @@ namespace DeserializeJSONFromNetwork
         public UInt32[] elements;
         public UInt32 vboid, eboid, nboid, cboid;
         public UInt32 verticalTess, horizontalTess;
+        public Vector2 activeAreaStart, activeAreaSize;
 
         public Mesh(UInt32 horizontalTess, UInt32 verticalTess)
         {
+            activeAreaStart = new Vector2(0.0f, 0.0f);
+            activeAreaSize = new Vector2(.3f, .3f);
+
             GL.GenBuffers(1, out vboid);
             GL.GenBuffers(1, out eboid);
             GL.GenBuffers(1, out nboid);
@@ -129,12 +133,34 @@ namespace DeserializeJSONFromNetwork
 
         public void RealizeParametersIntoVertices()
         {
+            if (! ClosedA ())
+            {
+                activeAreaStart.X = Math.Max(-1.0f, Math.Min(activeAreaStart.X, 1.0f));
+                if (activeAreaStart.X + activeAreaSize.X > 1.0f)
+                {
+                    activeAreaStart.X = 1.0f - activeAreaSize.X;
+                }
+            }
+            if (! ClosedB ())
+            {
+                activeAreaStart.Y = Math.Max(-1.0f, Math.Min(activeAreaStart.Y, 1.0f));
+                if (activeAreaStart.Y + activeAreaSize.Y > 1.0f)
+                {
+                    activeAreaStart.Y = 1.0f - activeAreaSize.Y;
+                }
+            }
             for (int i = 0; i < horizontalTess; i++)
             {
                 for (int j = 0; j < verticalTess; j++)
                 {
                     this.vertices[i + j * horizontalTess] = VertexFromParameters(parameters[i, j]);
-                    this.colors[i + j * horizontalTess] = new Color4(0.0f, 0.0f, 1.0f, 1.0f);
+                    Vector3 p = parameters[i, j];
+                    float green = 0.0f;
+                    if (ParameterWithinActiveArea (p))
+                    {
+                        green = 1.0f;
+                    }
+                    this.colors[i + j * horizontalTess] = new Color4(0.0f, green, 1.0f, 1.0f);
                 }
             }
             
@@ -200,6 +226,26 @@ namespace DeserializeJSONFromNetwork
                     this.normals[i + j * horizontalTess] = norm;
                 }
             }
+        }
+
+        public bool ParameterWithinActiveArea(Vector3 p)
+        {
+            float xDiff = p.X - activeAreaStart.X;
+            if (ClosedA())
+            {
+                xDiff %= 2.0f;
+                xDiff += 2.0f; //to deal with the dumb way C# does negative mods
+                xDiff %= 2.0f;
+            }
+            float yDiff = p.Y - activeAreaStart.Y;
+            if (ClosedB())
+            {
+                yDiff %= 2.0f;
+                yDiff += 2.0f; //to deal with the dumb way C# does negative mods
+                yDiff %= 2.0f;
+            }
+            return (0 < xDiff && xDiff < activeAreaSize.X) 
+                && (0 < yDiff && yDiff < activeAreaSize.Y);
         }
 
         public abstract bool ClosedA();
