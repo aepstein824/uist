@@ -294,7 +294,7 @@ DWORD WINAPI SensorLoop(void *argPointer)
 			lastPacketIndex++;
         }
     }
-    while (lFingerCount < lNumMaxReportedFingers);
+    while (lFingerCount <= lNumMaxReportedFingers);
 
     printf("%d finger gesture detected; exiting\n", lNumMaxReportedFingers);
 

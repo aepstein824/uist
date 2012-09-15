@@ -7,6 +7,8 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
+using System.Windows.Media;
+
 namespace DeserializeJSONFromNetwork
 {
 
@@ -26,6 +28,7 @@ namespace DeserializeJSONFromNetwork
         static int padMinY = 1000;
         static int padMaxY = 4700;
         static int padHeight = 3700;
+        static int maxPressure = 1000;
 
         public override string ToString()
         {
@@ -72,8 +75,46 @@ namespace DeserializeJSONFromNetwork
                 vector.Y = 1.0f;
             if (vector.Y < 0.0f)
                 vector.Y = 0.0f;
-            vector.Z = (float)data[2]; // TODO normalize to 0->1
+            vector.Z = (float)data[2] / maxPressure;
+            if (vector.Z < 0.0f)
+                vector.Z = 1.0f; // high pressures for whatever reason become negative
+            if (vector.Z > 1.0f)
+                vector.Z = 1.0f;
             return vector;
+        }
+
+        public Vector3[] rightmost3FingersTopToBottom()
+        {
+            return TouchedFingers().OrderByDescending(x => x.X).Take(3).OrderByDescending(x => x.Y).ToArray();
+        }
+
+        public Vector3 indexFinger()
+        {
+            return TouchedFingers().OrderBy(x => x.X).Take(2).ElementAt(1);
+        }
+
+        public Color rightmost3FingersTopToBottomAsColor()
+        {
+            Vector3[] fingers = rightmost3FingersTopToBottom();
+            Color color = new Color();
+            color.A = (byte)255;
+            /*
+            color.R = (byte)Math.Floor(fingers[0].Z * 256.0);
+            color.G = (byte)Math.Floor(fingers[1].Z * 256.0);
+            color.B = (byte)Math.Floor(fingers[2].Z * 256.0);
+            */
+            
+            color.R = (byte)0;
+            color.G = (byte)0;
+            color.B = (byte)0;
+            if (fingers[0].Z > fingers[1].Z && fingers[0].Z > fingers[2].Z)
+                color.R = (byte)255;
+            if (fingers[1].Z > fingers[0].Z && fingers[1].Z > fingers[2].Z)
+                color.G = (byte)255;
+            if (fingers[2].Z > fingers[0].Z && fingers[2].Z > fingers[1].Z)
+                color.B = (byte)255;
+            
+            return color;
         }
 
         public Vector3 finger(int fingernum)

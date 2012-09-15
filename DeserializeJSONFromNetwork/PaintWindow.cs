@@ -61,14 +61,40 @@ namespace DeserializeJSONFromNetwork
         {
             //Console.WriteLine("gesture consumed!");
             SensorData sensor = null;
-            foreach (SensorData x in gesture.DataSinceGestureStart.ReverseIterate())
+            foreach (SensorData s in gesture.DataSinceGestureStart.ReverseIterate())
             {
-                sensor = x;
+                sensor = s;
                 break;
             }
             if (sensor == null)
                 return;
+            //Console.WriteLine(gesture.State);
+            //Console.WriteLine(sensor.FingerCount());
+            //if (gesture.State != GestureGenerator.State.FIVEFINGERS)
+            //    return;
+            if (sensor.FingerCount() != 5)
+                return;
+            Color color = sensor.rightmost3FingersTopToBottomAsColor();
+            Console.WriteLine(color);
+            Vector3 indexFinger = sensor.indexFinger();
+            Console.WriteLine(indexFinger.Z);
+            int x = (int)(indexFinger.X * bitmap.PixelWidth);
+            if (x >= bitmap.PixelWidth)
+                x = bitmap.PixelWidth - 1;
+            int y = (int)(indexFinger.Y * bitmap.PixelHeight);
+            if (y >= bitmap.PixelHeight)
+                y = bitmap.PixelHeight - 1;
+            y = (bitmap.PixelHeight - 1) - y;
+            //Console.WriteLine(x + "," + y);
+            bitmap.setPixel(x, y, color);
             //Console.WriteLine("sensor data received!");
+            /*
+            if (sensor.FingerCount() != 5)
+            {
+                return;
+            }
+            */
+            /*
             foreach (Vector3 vector in sensor.TouchedFingers())
             {
                 //Console.WriteLine(vector.X + "," + vector.Y);
@@ -82,6 +108,7 @@ namespace DeserializeJSONFromNetwork
                 bitmap.setPixel(x, y, Colors.Black);
                 Console.WriteLine(x + "," + y);
             }
+            */
         }
         
     }
