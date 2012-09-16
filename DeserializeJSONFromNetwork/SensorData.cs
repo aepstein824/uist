@@ -93,27 +93,81 @@ namespace DeserializeJSONFromNetwork
             return TouchedFingers().OrderBy(x => x.X).Take(2).ElementAt(1);
         }
 
-        public Color rightmost3FingersTopToBottomAsColor()
+        public Vector3 getThumb()
         {
-            Vector3[] fingers = rightmost3FingersTopToBottom();
+            return TouchedFingers().OrderBy(x => x.X).ElementAt(0);
+        }
+
+        public int getIndexWithHighestPressure(params Vector3[] fingers)
+        {
+            int bestidx = 0;
+            float bestval = float.MinValue;
+            for (int i = 0; i < fingers.Length; ++i)
+            {
+                if (fingers[i].Z > bestval)
+                {
+                    bestidx = i;
+                    bestval = fingers[i].Z;
+                }
+            }
+            return bestidx;
+        }
+
+        public int getIndexWithHighestPressure(params float[] pressures)
+        {
+            int bestidx = 0;
+            float bestval = float.MinValue;
+            for (int i = 0; i < pressures.Length; ++i)
+            {
+                if (pressures[i] > bestval)
+                {
+                    bestidx = i;
+                    bestval = pressures[i];
+                }
+            }
+            return bestidx;
+        }
+        /*
+        public Color cmykToRGB(float c, float m, float y, float k)
+        {
+            float r, g, b;
+
+            // alpha = k
+            // cyan = 
+        }
+        */
+        public Color getColorFromFingers()
+        {
+            float[] pressures = { 0.0f, 0.0f, 0.0f, 0.0f }; // top3 then thumb
+            if (FingerCount() == 5)
+            {
+                Vector3[] fingers = rightmost3FingersTopToBottom();
+                pressures[0] = fingers[0].Z;
+                pressures[1] = fingers[1].Z;
+                pressures[2] = fingers[2].Z;
+                Vector3 thumb = getThumb();
+                pressures[3] = thumb.Z;
+            }
+            //double[] rgb = cmykToRGB();
             Color color = new Color();
             color.A = (byte)255;
-            /*
-            color.R = (byte)Math.Floor(fingers[0].Z * 256.0);
-            color.G = (byte)Math.Floor(fingers[1].Z * 256.0);
-            color.B = (byte)Math.Floor(fingers[2].Z * 256.0);
-            */
-            
             color.R = (byte)0;
             color.G = (byte)0;
             color.B = (byte)0;
-            if (fingers[0].Z > fingers[1].Z && fingers[0].Z > fingers[2].Z)
-                color.R = (byte)255;
-            if (fingers[1].Z > fingers[0].Z && fingers[1].Z > fingers[2].Z)
-                color.G = (byte)255;
-            if (fingers[2].Z > fingers[0].Z && fingers[2].Z > fingers[1].Z)
-                color.B = (byte)255;
             
+            color.R = (byte)Math.Floor(pressures[0] * 256.0);
+            color.G = (byte)Math.Floor(pressures[1] * 256.0);
+            color.B = (byte)Math.Floor(pressures[2] * 256.0);
+            
+            /*
+            int maxPressureIdx = getIndexWithHighestPressure(fingers[0], thumb, fingers[2]);
+            if (maxPressureIdx == 0)
+                color.R = (byte)255;
+            if (maxPressureIdx == 1)
+                color.G = (byte)255;
+            if (maxPressureIdx == 2)
+                color.B = (byte)255;
+            */
             return color;
         }
 

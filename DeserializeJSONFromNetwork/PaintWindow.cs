@@ -74,7 +74,7 @@ namespace DeserializeJSONFromNetwork
             //    return;
             if (sensor.FingerCount() != 5)
                 return;
-            Color color = sensor.rightmost3FingersTopToBottomAsColor();
+            Color color = sensor.getColorFromFingers();
             Console.WriteLine(color);
             Vector3 indexFinger = sensor.indexFinger();
             Console.WriteLine(indexFinger.Z);
