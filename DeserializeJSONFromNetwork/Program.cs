@@ -178,15 +178,15 @@ namespace DeserializeJSONFromNetwork
             // RenderFrame events (as fast as the computer can handle).
             
             Application app = new Application();
-            app.MainWindow = paintWindow;
-            paintWindow.Show();
-            app.Run();
-            /*
+            //app.MainWindow = paintWindow;
+            //paintWindow.Show();
+            //app.Run();
+            
             using (Program game = new Program())
             {
                 game.Run(30.0);
             }
-            */
+            
         }
     }
 }
