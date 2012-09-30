@@ -181,11 +181,11 @@ namespace DeserializeJSONFromNetwork
                 {
                     UInt32 upj = j + 1;
                     UInt32 overi = i + 1;
-                    int edgeSign = 1;
+                    int edgeSign = -1;
 
                     if (ClosedB())
                     {
-                        upj %= verticalTess;
+                        upj %= verticalTess; 
                     }
                     else
                     {

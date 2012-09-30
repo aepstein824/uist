@@ -79,14 +79,14 @@ namespace DeserializeJSONFromNetwork
         public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, double force)
         {
             float distance = this.getDistance(pointOfContact, pointOfInterest);
-            if (distance > FACTOR)
-            {
-                return 0;
-            }
-            else
-            {
-                return normalizeInput(force) * (float)Math.Exp(-30 * distance * distance);
-            }
+            //if (distance > FACTOR)
+            //{
+            //    return 0;
+            //}
+            //else
+            //{
+                return normalizeInput(force) * (float)Math.Exp(-1000 * distance * distance);
+            //}
         }
 
 
@@ -97,7 +97,7 @@ namespace DeserializeJSONFromNetwork
                 for (int j = 0; j < mesh.verticalTess; j++)
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
-                    float diff = deform(mesh.activeAreaStart, pointOfInterest, 1);
+                    float diff = deform(mesh.activeAreaStart + .5f * mesh.activeAreaSize, pointOfInterest, 5);
                     //mesh.mask[i, j].Z = diff;
                     mesh.parameters[i, j].Z += diff;
                 }

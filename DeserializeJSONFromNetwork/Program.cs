@@ -24,13 +24,15 @@ namespace DeserializeJSONFromNetwork
     class Program : GameWindow
     {
         Mesh test;
-         /// <summary>Creates a 800x600 window with the specified title.</summary>
+        CalculateDeform deform;
+        /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Program()
             : base(800, 600, GraphicsMode.Default, "UIST Demo")
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new TorusMesh(20, 20);
+            test = new TorusMesh(100, 100);
+            deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
 
@@ -43,7 +45,7 @@ namespace DeserializeJSONFromNetwork
             GL.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Cw);
+            GL.FrontFace(FrontFaceDirection.Ccw);
         }
 
         /// <summary>
@@ -78,6 +80,26 @@ namespace DeserializeJSONFromNetwork
                         test.parameters[i, j].Z -= .1f;
                     }
                 }
+            Vector2 areaMove = new Vector2();
+            if (Keyboard[Key.Left])
+            {
+                areaMove.X += -.1f;
+            }
+            if (Keyboard[Key.Right])
+            {
+                areaMove.X += .1f;
+            }
+            if (Keyboard[Key.Up])
+            {
+                areaMove.Y += .1f;
+            }
+            if (Keyboard[Key.Down])
+            {
+                areaMove.Y += -.1f;
+            }
+            test.activeAreaStart += areaMove;
+            
+            deform.updateParameters();
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -91,7 +113,7 @@ namespace DeserializeJSONFromNetwork
             base.OnRenderFrame(e);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            //GL.Disable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.DepthTest);
 
             Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -10.0f), Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
@@ -133,7 +155,7 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            generateGesturesThread.Start();
+            //generateGesturesThread.Start();
             PaintWindow paintWindow = new PaintWindow();
             Thread consumeGesturesThread = new Thread(() =>
             {
