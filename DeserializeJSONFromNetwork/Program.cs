@@ -31,7 +31,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new TorusMesh(100, 100);
+            test = new CartesianMesh(100, 100);
             deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
@@ -45,7 +45,7 @@ namespace DeserializeJSONFromNetwork
             GL.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Ccw);
+            GL.FrontFace(FrontFaceDirection.Cw);
         }
 
         /// <summary>
@@ -84,22 +84,37 @@ namespace DeserializeJSONFromNetwork
             if (Keyboard[Key.Left])
             {
                 areaMove.X += -.1f;
+                test.ClearUncommitted();
             }
             if (Keyboard[Key.Right])
             {
                 areaMove.X += .1f;
+                test.ClearUncommitted();
             }
             if (Keyboard[Key.Up])
             {
                 areaMove.Y += .1f;
+                test.ClearUncommitted();
             }
             if (Keyboard[Key.Down])
             {
                 areaMove.Y += -.1f;
+                test.ClearUncommitted();
+            }
+            if (Keyboard[Key.Space])
+            {
+                test.Commit();
+            }
+            if (Keyboard[Key.KeypadPlus])
+            {
+                test.activeAreaSize.Scale(1.1f, 1.1f);
+            }
+            if (Keyboard[Key.KeypadSubtract])
+            {
+                test.activeAreaSize.Scale(.9f, .9f) ;
             }
             test.activeAreaStart += areaMove;
             
-            deform.updateParameters();
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -115,7 +130,7 @@ namespace DeserializeJSONFromNetwork
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.DepthTest);
 
-            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -10.0f), Vector3.UnitZ, Vector3.UnitY);
+            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -3.0f), Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
@@ -123,7 +138,7 @@ namespace DeserializeJSONFromNetwork
             GL.Enable(EnableCap.Light0);
             GL.Enable(EnableCap.ColorMaterial);
             GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
-            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light0, LightParameter.Position, new Color4(4.0f, 0.0f, 1.0f, 0.0f));
             GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
             GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
             test.DrawSelf();
@@ -137,6 +152,8 @@ namespace DeserializeJSONFromNetwork
         [STAThread]
         static void Main(string[] args)
         {
+
+            Program game = new Program();
             // web code
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
@@ -155,8 +172,8 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            //generateGesturesThread.Start();
-            PaintWindow paintWindow = new PaintWindow();
+            generateGesturesThread.Start();
+
             Thread consumeGesturesThread = new Thread(() =>
             {
                 //paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
@@ -168,17 +185,8 @@ namespace DeserializeJSONFromNetwork
                     Gesture gesture;
                     if (!gestureGenerator.gestures.TryDequeue(out gesture))
                         continue;
-                    paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
-                    {
-                        paintWindow.ConsumeGesture(gesture);
-                    }));
-                    /*
-                    Console.WriteLine(gesture.State);
-                    Console.WriteLine(gesture.StartTime);
-                    Console.WriteLine(gesture.EventType);
-                    Console.WriteLine(gesture.DataSinceGestureStart.ForwardIterate().Count());
-                    */
 
+                    game.deform.ConsumeGesture(gesture);
                     /*
                      * Code below illustrates how you can get all the sensor data since the start of the gesture,
                      * both forward in time chronologically, and backward in time.
@@ -195,19 +203,9 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             consumeGesturesThread.Start();
-            // The 'using' idiom guarantees proper resource cleanup.
-            // We request 30 UpdateFrame events per second, and unlimited
-            // RenderFrame events (as fast as the computer can handle).
+           
             
-            Application app = new Application();
-            //app.MainWindow = paintWindow;
-            //paintWindow.Show();
-            //app.Run();
-            
-            using (Program game = new Program())
-            {
-                game.Run(30.0);
-            }
+               game.Run(30.0);
             
         }
     }

@@ -11,7 +11,8 @@ namespace DeserializeJSONFromNetwork
 {
     abstract class Mesh
     {
-        public Vector3[,] parameters, parametersPrePoke, mask;
+        public Vector3[,] parameters;
+        public float[,] uncommitted;
         public Vector3[] vertices;
         public Vector3[] normals;
         public Color4[] colors;
@@ -33,8 +34,7 @@ namespace DeserializeJSONFromNetwork
             this.verticalTess = verticalTess;
             this.horizontalTess = horizontalTess;
             this.parameters = new Vector3[horizontalTess, verticalTess];
-            this.parametersPrePoke = new Vector3[horizontalTess, verticalTess];
-            this.mask = new Vector3[horizontalTess, verticalTess];
+            this.uncommitted = new float[horizontalTess, verticalTess];
             this.colors = new Color4[horizontalTess * verticalTess];
             for (int i = 0; i < horizontalTess; i++)
             {
@@ -43,8 +43,6 @@ namespace DeserializeJSONFromNetwork
                     Vector2 scaledCoord = indexCoordinateToScaledCoordinate(i,j);
 
                     this.parameters[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
-                    this.parametersPrePoke[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
-                    this.mask[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
                 }
             }
             this.vertices = new Vector3[horizontalTess * verticalTess];
@@ -109,6 +107,29 @@ namespace DeserializeJSONFromNetwork
             return new Vector2(a, b);
         }
 
+        public void ClearUncommitted()
+        {
+            for (int i = 0; i < horizontalTess; i++)
+            {
+                for (int j = 0; j < verticalTess; j++)
+                {
+                    uncommitted[i, j] = 0.0f;
+                }
+            }
+        }
+
+	public void Commit()
+	{
+	  for (int i = 0; i < horizontalTess; i++)
+	    {
+	      for (int j = 0; j < verticalTess; j++)
+		{
+		  parameters[i, j].Z += uncommitted[i,j];
+		}
+	    }
+	  ClearUncommitted ();
+	}
+
         public void DrawSelf()
         {
             this.RealizeParametersIntoVertices();
@@ -164,8 +185,9 @@ namespace DeserializeJSONFromNetwork
             {
                 for (int j = 0; j < verticalTess; j++)
                 {
-                    this.vertices[i + j * horizontalTess] = VertexFromParameters(parameters[i, j]);
-                    Vector3 p = parameters[i, j];
+		    Vector3 p = parameters[i, j];
+		    p.Z += uncommitted[i,j];
+                    this.vertices[i + j * horizontalTess] = VertexFromParameters(p);
                     float green = 0.0f;
                     if (ParameterWithinActiveArea (p))
                     {
@@ -181,7 +203,7 @@ namespace DeserializeJSONFromNetwork
                 {
                     UInt32 upj = j + 1;
                     UInt32 overi = i + 1;
-                    int edgeSign = -1;
+                    int edgeSign = 1;
 
                     if (ClosedB())
                     {

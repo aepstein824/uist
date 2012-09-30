@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 
 namespace DeserializeJSONFromNetwork
 {
-    class CalculateDeform
+    class CalculateDeform 
     {
         Mesh mesh;
         static float max = 500.0f;
@@ -85,24 +87,43 @@ namespace DeserializeJSONFromNetwork
             //}
             //else
             //{
-                return normalizeInput(force) * (float)Math.Exp(-1000 * distance * distance);
+                return normalizeInput(force) * (float)Math.Exp(-100 * distance * distance);
             //}
         }
 
 
-        public void updateParameters()
+        public void updateParameters(Vector2 pointOfContact, float force)
         {
             for (int i = 0; i < mesh.horizontalTess; i++)
             {
                 for (int j = 0; j < mesh.verticalTess; j++)
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
-                    float diff = deform(mesh.activeAreaStart + .5f * mesh.activeAreaSize, pointOfInterest, 5);
-                    //mesh.mask[i, j].Z = diff;
-                    mesh.parameters[i, j].Z += diff;
+                    float diff = deform(mesh.activeAreaStart 
+                        + new Vector2 (mesh.activeAreaSize.X * pointOfContact.X, 
+                            mesh.activeAreaSize.Y * pointOfContact.Y), pointOfInterest, 1000 * force);
+                    mesh.uncommitted[i, j] = diff;
+                    //mesh.parameters[i, j].Z += diff;
                 }
             }
         }
+
+        public void ConsumeGesture(Gesture g)
+        {
+            
+            SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
+            if (s != null && s.FingerCount () > 0)
+            {
+                Vector3 first = s.finger(0);
+                updateParameters(first.Xy, first.Z);
+            }
+            if (g.EventType == GestureGenerator.EventType.VANISH)
+            {
+                mesh.ClearUncommitted();
+            }
+        }
+
+        
 
     }
 }
