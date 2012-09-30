@@ -10,6 +10,11 @@
 #include <string>
 #include <sstream>
 
+#using "System.dll"
+
+using namespace System::Net;
+using namespace System::Net::Sockets;
+
 using namespace std;
 
 #pragma comment(lib, "SynCOM.lib") // For access point SynCreateAPI
@@ -68,8 +73,25 @@ int lastPacketIndex;
 DWORD WINAPI SocketHandler(void*);
 DWORD WINAPI SensorLoop(void *argPointer);
 
-int main(int argv, char** argc){
+System::String^ getIPAddress()
+{
+    System::String^ localIP = "?";
+    IPHostEntry ^host = Dns::GetHostEntry(Dns::GetHostName());
+    for each (IPAddress^ ip in host->AddressList)
+    {
+        if (ip->AddressFamily == AddressFamily::InterNetwork)
+        {
+            localIP = ip->ToString();
+        }
+    }
+    return localIP;
+}
 
+int main(int argv, char** argc){
+	//System::String^ ipAddress = (gcnew WebClient())->DownloadString("http://myip.ozymo.com/");
+	System::String^ ipAddress = getIPAddress();
+	System::Console::WriteLine("your ip address is: " + ipAddress);
+    (gcnew WebClient())->DownloadString("http://transgame.csail.mit.edu:9537/?set=" + ipAddress + "&varname=jedeyeserver");
     //The port you want the server to listen on
     int host_port= 1101;
 
@@ -294,7 +316,7 @@ DWORD WINAPI SensorLoop(void *argPointer)
 			lastPacketIndex++;
         }
     }
-    while (lFingerCount <= lNumMaxReportedFingers);
+    while (true);
 
     printf("%d finger gesture detected; exiting\n", lNumMaxReportedFingers);
 
