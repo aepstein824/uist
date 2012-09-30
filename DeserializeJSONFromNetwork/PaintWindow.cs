@@ -72,7 +72,7 @@ namespace DeserializeJSONFromNetwork
             //Console.WriteLine(sensor.FingerCount());
             //if (gesture.State != GestureGenerator.State.FIVEFINGERS)
             //    return;
-            if (sensor.FingerCount() != 5)
+            if (sensor.FingerCount() != 4)
                 return;
             Color color = sensor.getColorFromFingers();
             Console.WriteLine(color);

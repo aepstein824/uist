@@ -11,6 +11,8 @@ namespace DeserializeJSONFromNetwork
 {
     class CalculateDeform 
     {
+        public ModeSwitcher.EditModeWrapper editMode = null;
+
         Mesh mesh;
         static float max = 500.0f;
         static float FACTOR = 0.2f;
@@ -102,7 +104,14 @@ namespace DeserializeJSONFromNetwork
                     float diff = deform(mesh.activeAreaStart 
                         + new Vector2 (mesh.activeAreaSize.X * pointOfContact.X, 
                             mesh.activeAreaSize.Y * pointOfContact.Y), pointOfInterest, 1000 * force);
-                    mesh.uncommitted[i, j] = diff;
+                    if (editMode.mode == ModeSwitcher.EditMode.Add)
+                    {
+                        mesh.uncommitted[i, j] = diff;
+                    }
+                    else if (editMode.mode == ModeSwitcher.EditMode.Subtract)
+                    {
+                        mesh.uncommitted[i, j] = -diff;
+                    }
                     //mesh.parameters[i, j].Z += diff;
                 }
             }
