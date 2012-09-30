@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+
 namespace DeserializeJSONFromNetwork
 {
     public static class Extensions
@@ -32,6 +36,52 @@ namespace DeserializeJSONFromNetwork
                 yield return dequeue.PeekRight();
                 dequeue = dequeue.DequeueRight();
             }
+        }
+
+        public static Color getPixel(this WriteableBitmap wbm, int x, int y)
+        {
+            if (y > wbm.PixelHeight - 1 ||
+              x > wbm.PixelWidth - 1)
+                return Color.FromArgb(0, 0, 0, 0);
+            if (y < 0 || x < 0)
+                return Color.FromArgb(0, 0, 0, 0);
+            if (!wbm.Format.Equals(
+                    PixelFormats.Bgra32))
+                return Color.FromArgb(0, 0, 0, 0); ;
+            IntPtr buff = wbm.BackBuffer;
+            int Stride = wbm.BackBufferStride;
+            Color c;
+            unsafe
+            {
+                byte* pbuff = (byte*)buff.ToPointer();
+                int loc = y * Stride + x * 4;
+                c = Color.FromArgb(pbuff[loc + 3],
+                  pbuff[loc + 2], pbuff[loc + 1],
+                    pbuff[loc]);
+            }
+            return c;
+        }
+
+        public static void setPixel(this WriteableBitmap wbm, int x, int y, Color c)
+        {
+            if (y > wbm.PixelHeight - 1 ||
+                x > wbm.PixelWidth - 1) return;
+            if (y < 0 || x < 0) return;
+            if (!wbm.Format.Equals(PixelFormats.Bgra32)) return;
+            wbm.Lock();
+            IntPtr buff = wbm.BackBuffer;
+            int Stride = wbm.BackBufferStride;
+            unsafe
+            {
+                byte* pbuff = (byte*)buff.ToPointer();
+                int loc = y * Stride + x * 4;
+                pbuff[loc] = c.B;
+                pbuff[loc + 1] = c.G;
+                pbuff[loc + 2] = c.R;
+                pbuff[loc + 3] = c.A;
+            }
+            wbm.AddDirtyRect(new Int32Rect(x,y,1,1));
+            wbm.Unlock();
         }
     }
 }

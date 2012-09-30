@@ -8,6 +8,8 @@ using System.Net.Sockets;
 using System.IO;
 using System.Collections.Concurrent;
 
+using System.Windows;
+
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -17,73 +19,20 @@ using OpenTK.Input;
 
 namespace DeserializeJSONFromNetwork
 {
-    class SensorData
-    {
-        public double[] corners; // length 4: corners 0-3
-        public bool[] touched; // length 5: fingers 0-4
-        public double[] f0; // length 3: coordinates x,y,z
-        public double[] f1; // length 3: coordinates x,y,z
-        public double[] f2; // length 3: coordinates x,y,z
-        public double[] f3; // length 3: coordinates x,y,z
-
-        public override string ToString()
-        {
-            List<string> output = new List<string>();
-            output.Add("corners: ");
-            output.Add(corners.PrintArray());
-            output.Add(touched.PrintArray());
-            output.Add(f0.PrintArray());
-            output.Add(f1.PrintArray());
-            output.Add(f2.PrintArray());
-            output.Add(f3.PrintArray());
-            StringBuilder outstring = new StringBuilder();
-            outstring.Append("{");
-            outstring.Append(String.Join(",", String.Join(",", output)));
-            outstring.Append("}"); 
-            return outstring.ToString();
-        }
-
-
-        /* Counts how many of the first fingers are currently touching.
-         */
-        public int FingerCount()
-        {
-            int c = 0;
-            for (int i = 0; i < 5; i++)
-            {
-                if (touched[i])
-                {
-                    c++;
-                }
-                else
-                {
-                    return c;
-                }
-            }
-            return c;
-        }
-
-        /* Returns the distance, in touchpad pixels, between two fingers currently touching.
-         * 
-         */
-        public double Distance()
-        {
-            double dx = f0[0] - f1[0];
-            double dy = f0[1] - f1[1];
-            return System.Math.Sqrt(dx * dx + dy * dy);
-        }
-    }
+    
 
     class Program : GameWindow
     {
         Mesh test;
-         /// <summary>Creates a 800x600 window with the specified title.</summary>
+        CalculateDeform deform;
+        /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Program()
             : base(800, 600, GraphicsMode.Default, "UIST Demo")
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new TorusMesh(20, 20);
+            test = new CartesianMesh(100, 100);
+            deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
 
@@ -131,6 +80,41 @@ namespace DeserializeJSONFromNetwork
                         test.parameters[i, j].Z -= .1f;
                     }
                 }
+            Vector2 areaMove = new Vector2();
+            if (Keyboard[Key.Left])
+            {
+                areaMove.X += -.1f;
+                test.ClearUncommitted();
+            }
+            if (Keyboard[Key.Right])
+            {
+                areaMove.X += .1f;
+                test.ClearUncommitted();
+            }
+            if (Keyboard[Key.Up])
+            {
+                areaMove.Y += .1f;
+                test.ClearUncommitted();
+            }
+            if (Keyboard[Key.Down])
+            {
+                areaMove.Y += -.1f;
+                test.ClearUncommitted();
+            }
+            if (Keyboard[Key.Space])
+            {
+                test.Commit();
+            }
+            if (Keyboard[Key.KeypadPlus])
+            {
+                test.activeAreaSize.Scale(1.1f, 1.1f);
+            }
+            if (Keyboard[Key.KeypadSubtract])
+            {
+                test.activeAreaSize.Scale(.9f, .9f) ;
+            }
+            test.activeAreaStart += areaMove;
+            
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -144,9 +128,9 @@ namespace DeserializeJSONFromNetwork
             base.OnRenderFrame(e);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            //GL.Disable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.DepthTest);
 
-            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -10.0f), Vector3.UnitZ, Vector3.UnitY);
+            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -3.0f), Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
@@ -154,7 +138,7 @@ namespace DeserializeJSONFromNetwork
             GL.Enable(EnableCap.Light0);
             GL.Enable(EnableCap.ColorMaterial);
             GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
-            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light0, LightParameter.Position, new Color4(4.0f, 0.0f, 1.0f, 0.0f));
             GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
             GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
             test.DrawSelf();
@@ -168,14 +152,17 @@ namespace DeserializeJSONFromNetwork
         [STAThread]
         static void Main(string[] args)
         {
+
+            Program game = new Program();
             // web code
-            WebClient webClient = new WebClient();
-            string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
-            TcpClient client = new TcpClient(IPaddress, 1101);
-            TextReader reader = new StreamReader(client.GetStream());
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
             {
+                WebClient webClient = new WebClient();
+                webClient.Proxy = null;
+                string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                TcpClient client = new TcpClient(IPaddress, 1101);
+                TextReader reader = new StreamReader(client.GetStream());
                 while (true)
                 {
                     string data = reader.ReadLine();
@@ -186,17 +173,20 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             generateGesturesThread.Start();
+
             Thread consumeGesturesThread = new Thread(() =>
             {
+                //paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
+                //{
+                //    paintWindow.SetRed();
+                //}));
                 while (true)
                 {
                     Gesture gesture;
                     if (!gestureGenerator.gestures.TryDequeue(out gesture))
                         continue;
-                    Console.WriteLine(gesture.State);
-                    Console.WriteLine(gesture.StartTime);
-                    Console.WriteLine(gesture.EventType);
-                    Console.WriteLine(gesture.DataSinceGestureStart.ForwardIterate().Count());
+
+                    game.deform.ConsumeGesture(gesture);
                     /*
                      * Code below illustrates how you can get all the sensor data since the start of the gesture,
                      * both forward in time chronologically, and backward in time.
@@ -213,13 +203,10 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             consumeGesturesThread.Start();
-            // The 'using' idiom guarantees proper resource cleanup.
-            // We request 30 UpdateFrame events per second, and unlimited
-            // RenderFrame events (as fast as the computer can handle).
-            using (Program game = new Program())
-            {
-                game.Run(30.0);
-            }
+           
+            
+               game.Run(30.0);
+            
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace DeserializeJSONFromNetwork
 {
-    class GestureGenerator
+    public class GestureGenerator
     {
         public enum State
         {
@@ -15,6 +15,7 @@ namespace DeserializeJSONFromNetwork
             SCULPT,
             ROLL,
             ZOOM,
+            FIVEFINGERS,
         }
 
         public enum EventType
@@ -69,6 +70,10 @@ namespace DeserializeJSONFromNetwork
                         state = State.ZOOM;
                     }
                 }
+            }
+            else if (fingers == 5)
+            {
+                state = State.FIVEFINGERS;
             }
         }
 
