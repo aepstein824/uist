@@ -12,17 +12,11 @@ namespace DeserializeJSONFromNetwork
     class CalculateDeform 
     {
         Mesh mesh;
-        static float max = 500.0f;
         static float FACTOR = 0.2f;
 
         public CalculateDeform(Mesh mesh)
         {
             this.mesh = mesh;
-        }
-
-        private static float normalizeInput(double force)
-        {
-            return (float)force / max;
         }
 
         private float getDistance(Vector2 pt1, Vector2 pt2)
@@ -46,10 +40,11 @@ namespace DeserializeJSONFromNetwork
 
                 if (mesh.ClosedB())
                 {
-                    for (int j = 0; j < 2; j++)
+                    for (int j = 0; j < offsets.Length; j++)
                     {
                         i++;
                         toTry[i] = new Vector2(pt2.X + offsets[j], pt2.Y - 2.0f);
+                        i++;
                         toTry[i] = new Vector2(pt2.X + offsets[j], pt2.Y + 2.0f);
                     }
                 }
@@ -60,6 +55,7 @@ namespace DeserializeJSONFromNetwork
                 {
                         i++;
                         toTry[i] = new Vector2(pt2.X, pt2.Y - 2.0f);
+                        i++;
                         toTry[i] = new Vector2(pt2.X, pt2.Y+ 2.0f);
                 }
             }
@@ -78,7 +74,7 @@ namespace DeserializeJSONFromNetwork
         /**
          * returns deformation of any point
          */
-        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, double force)
+        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force)
         {
             float distance = this.getDistance(pointOfContact, pointOfInterest);
             //if (distance > FACTOR)
@@ -87,23 +83,23 @@ namespace DeserializeJSONFromNetwork
             //}
             //else
             //{
-                return normalizeInput(force) * (float)Math.Exp(-100 * distance * distance);
+                return force * (float)Math.Exp(-100 * distance * distance);
             //}
         }
 
 
         public void updateParameters(Vector2 pointOfContact, float force)
         {
+            Console.WriteLine("point = " + mesh.activeAreaStart);
             for (int i = 0; i < mesh.horizontalTess; i++)
             {
                 for (int j = 0; j < mesh.verticalTess; j++)
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
                     float diff = deform(mesh.activeAreaStart 
-                        + new Vector2 (mesh.activeAreaSize.X * pointOfContact.X, 
-                            mesh.activeAreaSize.Y * pointOfContact.Y), pointOfInterest, 1000 * force);
+                        + Vector2.Multiply (mesh.activeAreaSize, pointOfContact), 
+                        pointOfInterest, force);
                     mesh.uncommitted[i, j] = diff;
-                    //mesh.parameters[i, j].Z += diff;
                 }
             }
         }

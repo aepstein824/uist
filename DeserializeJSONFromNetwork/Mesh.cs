@@ -165,7 +165,12 @@ namespace DeserializeJSONFromNetwork
 
         public void RealizeParametersIntoVertices()
         {
-            if (! ClosedA ())
+
+            if (ClosedA())
+            {
+                activeAreaStart.X = Wrap2D(activeAreaStart).X;
+            }
+            else
             {
                 activeAreaStart.X = Math.Max(-1.0f, Math.Min(activeAreaStart.X, 1.0f));
                 if (activeAreaStart.X + activeAreaSize.X > 1.0f)
@@ -173,7 +178,11 @@ namespace DeserializeJSONFromNetwork
                     activeAreaStart.X = 1.0f - activeAreaSize.X;
                 }
             }
-            if (! ClosedB ())
+            if (ClosedB())
+            {
+                activeAreaStart.Y = Wrap2D(activeAreaStart).Y;
+            }
+            else
             {
                 activeAreaStart.Y = Math.Max(-1.0f, Math.Min(activeAreaStart.Y, 1.0f));
                 if (activeAreaStart.Y + activeAreaSize.Y > 1.0f)
@@ -259,6 +268,21 @@ namespace DeserializeJSONFromNetwork
                     this.normals[i + j * horizontalTess] = norm;
                 }
             }
+        }
+
+        public Vector2 Wrap2D(Vector2 toWrap)
+        {
+            Vector2 wrapped = toWrap;
+            Vector2 toPos = new Vector2(1.0f, 1.0f);
+            wrapped += toPos; //to [0, 2]
+            wrapped.X %= 2.0f;
+            wrapped.X += 2.0f; //to deal with the dumb way C# does negative mods
+            wrapped.X %= 2.0f;
+            wrapped.Y %= 2.0f;
+            wrapped.Y += 2.0f; //to deal with the dumb way C# does negative mods
+            wrapped.Y %= 2.0f;
+            wrapped -= toPos;
+            return wrapped;
         }
 
         public bool ParameterWithinActiveArea(Vector3 p)
