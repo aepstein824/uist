@@ -31,7 +31,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new SphericalMesh(100, 100);
+            test = new TorusMesh(100, 100);
             deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
