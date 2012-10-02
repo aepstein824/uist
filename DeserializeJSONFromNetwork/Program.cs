@@ -31,7 +31,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new CartesianMesh(100, 100);
+            test = new SphericalMesh(100, 100);
             deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
@@ -73,13 +73,13 @@ namespace DeserializeJSONFromNetwork
         {
             base.OnUpdateFrame(e);
             if (Keyboard[Key.A])
-                for (int i = 0; i < test.horizontalTess; i++)
-                {
-                    for (int j = 0; j < test.verticalTess; j++)
-                    {
-                        test.parameters[i, j].Z -= .1f;
-                    }
-                }
+            {
+                deform.updateParameters(new Vector2(.5f, .5f), .3f);
+            }
+            else if (Keyboard[Key.O])
+            {
+                test.ClearUncommitted();
+            }
             Vector2 areaMove = new Vector2();
             if (Keyboard[Key.Left])
             {

@@ -110,7 +110,6 @@ namespace DeserializeJSONFromNetwork
 
         public void ConsumeGesture(Gesture g)
         {
-            
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount () > 0)
             {
