@@ -74,7 +74,8 @@ namespace DeserializeJSONFromNetwork
             base.OnUpdateFrame(e);
             if (Keyboard[Key.A])
             {
-                deform.updateParameters(new Vector2(.5f, .5f), .3f);
+                Vector2 meshPointOfContact = test.activeAreaStart + .5f * test.activeAreaSize;
+                deform.updateParameters(Mesh.Wrap2D(meshPointOfContact), .3f);
             }
             else if (Keyboard[Key.O])
             {

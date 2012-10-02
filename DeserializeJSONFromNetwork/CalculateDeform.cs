@@ -12,7 +12,7 @@ namespace DeserializeJSONFromNetwork
     class CalculateDeform 
     {
         Mesh mesh;
-        static float FACTOR = 0.2f;
+        static float MAX_DISTANCE = 2.0f; //do we need this?
 
         public CalculateDeform(Mesh mesh)
         {
@@ -56,7 +56,7 @@ namespace DeserializeJSONFromNetwork
                         i++;
                         toTry[i] = new Vector2(pt2.X, pt2.Y - 2.0f);
                         i++;
-                        toTry[i] = new Vector2(pt2.X, pt2.Y+ 2.0f);
+                        toTry[i] = new Vector2(pt2.X, pt2.Y + 2.0f);
                 }
             }
 
@@ -76,15 +76,15 @@ namespace DeserializeJSONFromNetwork
          */
         public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force)
         {
-            float distance = this.getDistance(pointOfContact, pointOfInterest);
-            //if (distance > FACTOR)
-            //{
-            //    return 0;
-            //}
-            //else
-            //{
+            float distance = this.getRealDistanceWithWrap(pointOfContact, pointOfInterest);
+            if (distance > MAX_DISTANCE)
+            {
+                return 0;
+            }
+            else
+            {
                 return force * (float)Math.Exp(-100 * distance * distance);
-            //}
+            }
         }
 
 
@@ -96,9 +96,7 @@ namespace DeserializeJSONFromNetwork
                 for (int j = 0; j < mesh.verticalTess; j++)
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
-                    float diff = deform(mesh.activeAreaStart 
-                        + Vector2.Multiply (mesh.activeAreaSize, pointOfContact), 
-                        pointOfInterest, force);
+                    float diff = deform(pointOfContact, pointOfInterest, force);
                     mesh.uncommitted[i, j] = diff;
                 }
             }
@@ -110,7 +108,11 @@ namespace DeserializeJSONFromNetwork
             if (s != null && s.FingerCount () > 0)
             {
                 Vector3 first = s.finger(0);
-                updateParameters(first.Xy, first.Z);
+                Vector2 meshPointOfContact =
+                    mesh.activeAreaStart
+                        + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
+                meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
+                updateParameters(meshPointOfContact, first.Z);
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {

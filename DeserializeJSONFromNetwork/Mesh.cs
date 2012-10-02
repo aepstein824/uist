@@ -270,7 +270,7 @@ namespace DeserializeJSONFromNetwork
             }
         }
 
-        public Vector2 Wrap2D(Vector2 toWrap)
+        public static Vector2 Wrap2D(Vector2 toWrap)
         {
             Vector2 wrapped = toWrap;
             Vector2 toPos = new Vector2(1.0f, 1.0f);
