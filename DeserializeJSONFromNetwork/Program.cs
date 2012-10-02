@@ -24,7 +24,7 @@ namespace DeserializeJSONFromNetwork
     class Program : GameWindow
     {
         Mesh test;
-        CalculateDeform deform;
+        public CalculateDeform deform;
         /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Program()
             : base(800, 600, GraphicsMode.Default, "UIST Demo")
@@ -163,6 +163,8 @@ namespace DeserializeJSONFromNetwork
         {
 
             Program game = new Program();
+            ModeSwitcher.EditModeWrapper editMode = new ModeSwitcher.EditModeWrapper();
+            game.deform.editMode = editMode;
             // web code
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
@@ -182,13 +184,22 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             //generateGesturesThread.Start();
-
+            //PaintWindow paintWindow = new PaintWindow();
+            //paintWindow.Show();
             Thread consumeGesturesThread = new Thread(() =>
             {
-                //paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
-                //{
-                //    paintWindow.SetRed();
-                //}));
+#if false
+                while (true)
+                {
+                    Gesture gesture;
+                    if (!gestureGenerator.gestures.TryDequeue(out gesture))
+                        continue;
+                    paintWindow.Dispatcher.BeginInvoke(new ThreadStart(() =>
+                    {
+                        paintWindow.ConsumeGesture(gesture);
+                    }));
+                }
+#endif
                 while (true)
                 {
                     Gesture gesture;
@@ -210,11 +221,24 @@ namespace DeserializeJSONFromNetwork
                     }
                     */
                 }
-            });
+                });
             consumeGesturesThread.Start();
-           
-            
-               game.Run(30.0);
+            Thread guiThread = new Thread(() =>
+            {
+                ModeSwitcher modeSwitcher = new ModeSwitcher();
+                modeSwitcher.currentMode = editMode;
+                modeSwitcher.Show();
+                Application app = new Application();
+                app.Run();
+            });
+            guiThread.SetApartmentState(ApartmentState.STA);
+            guiThread.Start();
+            game.Run();
+            /*
+            Application app = new Application();
+            app.MainWindow = paintWindow;
+            app.Run();
+            */
             
         }
     }

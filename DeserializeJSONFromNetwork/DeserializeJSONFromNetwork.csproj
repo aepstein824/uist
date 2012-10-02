@@ -64,12 +64,21 @@
     <Compile Include="CartesianMesh.cs" />
     <Compile Include="CylindricalMesh.cs" />
     <Compile Include="Mesh.cs" />
+    <Compile Include="ModeSwitcher.xaml.cs">
+      <DependentUpon>ModeSwitcher.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PaintWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SensorData.cs" />
     <Compile Include="SphericalMesh.cs" />
     <Compile Include="TorusMesh.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="ModeSwitcher.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

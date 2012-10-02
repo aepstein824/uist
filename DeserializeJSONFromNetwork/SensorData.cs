@@ -88,6 +88,11 @@ namespace DeserializeJSONFromNetwork
             return TouchedFingers().OrderByDescending(x => x.X).Take(3).OrderByDescending(x => x.Y).ToArray();
         }
 
+        public Vector3[] rightmost2FingersTopToBottom()
+        {
+            return TouchedFingers().OrderByDescending(x => x.X).Take(2).OrderByDescending(x => x.Y).ToArray();
+        }
+
         public Vector3 indexFinger()
         {
             return TouchedFingers().OrderBy(x => x.X).Take(2).ElementAt(1);
@@ -139,12 +144,12 @@ namespace DeserializeJSONFromNetwork
         public Color getColorFromFingers()
         {
             float[] pressures = { 0.0f, 0.0f, 0.0f, 0.0f }; // top3 then thumb
-            if (FingerCount() == 5)
+            if (FingerCount() == 4)
             {
-                Vector3[] fingers = rightmost3FingersTopToBottom();
+                Vector3[] fingers = rightmost2FingersTopToBottom();
                 pressures[0] = fingers[0].Z;
                 pressures[1] = fingers[1].Z;
-                pressures[2] = fingers[2].Z;
+                //pressures[2] = fingers[2].Z;
                 Vector3 thumb = getThumb();
                 pressures[3] = thumb.Z;
             }
@@ -155,9 +160,9 @@ namespace DeserializeJSONFromNetwork
             color.G = (byte)0;
             color.B = (byte)0;
             
-            color.R = (byte)Math.Floor(pressures[0] * 256.0);
-            color.G = (byte)Math.Floor(pressures[1] * 256.0);
-            color.B = (byte)Math.Floor(pressures[2] * 256.0);
+            color.R = (byte)Math.Floor(pressures[3] * 256.0);
+            color.G = (byte)Math.Floor(pressures[0] * 256.0);
+            color.B = (byte)Math.Floor(pressures[1] * 256.0);
             
             /*
             int maxPressureIdx = getIndexWithHighestPressure(fingers[0], thumb, fingers[2]);

@@ -11,6 +11,8 @@ namespace DeserializeJSONFromNetwork
 {
     class CalculateDeform 
     {
+        public ModeSwitcher.EditModeWrapper editMode = null;
+
         Mesh mesh;
         static float MAX_DISTANCE = 2.0f; //do we need this?
 
@@ -97,7 +99,7 @@ namespace DeserializeJSONFromNetwork
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
                     float diff = deform(pointOfContact, pointOfInterest, force);
-                    mesh.uncommitted[i, j] = diff;
+                    mesh.uncommitted[i, j] = (this.editMode.mode == ModeSwitcher.EditMode.Add) ? diff : -diff;
                 }
             }
             mesh.geometryNeedsResend = true;
