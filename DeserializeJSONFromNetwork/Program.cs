@@ -31,7 +31,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new TorusMesh(100, 100);
+            test = new SphericalMesh(50, 200);
             deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
@@ -116,8 +116,12 @@ namespace DeserializeJSONFromNetwork
                 scale *= .9f;
             }
             test.activeAreaSize = Vector2.Multiply(test.activeAreaSize, scale);
-            test.activeAreaStart += areaMove;
-            
+            if (areaMove.Length > .01f)
+            {
+                test.activeAreaStart += areaMove;
+                test.colorNeedsResend = true;
+            }
+
             if (Keyboard[Key.Escape])
                 Exit();
         }

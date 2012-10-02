@@ -100,6 +100,7 @@ namespace DeserializeJSONFromNetwork
                     mesh.uncommitted[i, j] = diff;
                 }
             }
+            mesh.geometryNeedsResend = true;
         }
 
         public void ConsumeGesture(Gesture g)
