@@ -31,7 +31,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new CartesianMesh(100, 100);
+            test = new SphericalMesh(50, 200);
             deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
@@ -45,7 +45,7 @@ namespace DeserializeJSONFromNetwork
             GL.ClearColor(0.2f, 0.2f, 0.2f, 0.0f);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
-            GL.FrontFace(FrontFaceDirection.Cw);
+            GL.FrontFace(FrontFaceDirection.Ccw);
         }
 
         /// <summary>
@@ -73,13 +73,14 @@ namespace DeserializeJSONFromNetwork
         {
             base.OnUpdateFrame(e);
             if (Keyboard[Key.A])
-                for (int i = 0; i < test.horizontalTess; i++)
-                {
-                    for (int j = 0; j < test.verticalTess; j++)
-                    {
-                        test.parameters[i, j].Z -= .1f;
-                    }
-                }
+            {
+                Vector2 meshPointOfContact = test.activeAreaStart + .5f * test.activeAreaSize;
+                deform.updateParameters(Mesh.Wrap2D(meshPointOfContact), .3f);
+            }
+            else if (Keyboard[Key.O])
+            {
+                test.ClearUncommitted();
+            }
             Vector2 areaMove = new Vector2();
             if (Keyboard[Key.Left])
             {
@@ -105,16 +106,22 @@ namespace DeserializeJSONFromNetwork
             {
                 test.Commit();
             }
+            Vector2 scale = new Vector2 (1.0f, 1.0f);
             if (Keyboard[Key.KeypadPlus])
             {
-                test.activeAreaSize.Scale(1.1f, 1.1f);
+                scale *= 1.1f;
             }
             if (Keyboard[Key.KeypadSubtract])
             {
-                test.activeAreaSize.Scale(.9f, .9f) ;
+                scale *= .9f;
             }
-            test.activeAreaStart += areaMove;
-            
+            test.activeAreaSize = Vector2.Multiply(test.activeAreaSize, scale);
+            if (areaMove.Length > .01f)
+            {
+                test.activeAreaStart += areaMove;
+                test.colorNeedsResend = true;
+            }
+
             if (Keyboard[Key.Escape])
                 Exit();
         }
@@ -130,7 +137,7 @@ namespace DeserializeJSONFromNetwork
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.DepthTest);
 
-            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, -3.0f), Vector3.UnitZ, Vector3.UnitY);
+            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, 3.0f), -1 * Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
@@ -138,7 +145,7 @@ namespace DeserializeJSONFromNetwork
             GL.Enable(EnableCap.Light0);
             GL.Enable(EnableCap.ColorMaterial);
             GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
-            GL.Light(LightName.Light0, LightParameter.Position, new Color4(4.0f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
             GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
             GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
             test.DrawSelf();
@@ -172,7 +179,7 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            generateGesturesThread.Start();
+            //generateGesturesThread.Start();
 
             Thread consumeGesturesThread = new Thread(() =>
             {

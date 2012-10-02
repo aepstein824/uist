@@ -12,17 +12,11 @@ namespace DeserializeJSONFromNetwork
     class CalculateDeform 
     {
         Mesh mesh;
-        static float max = 500.0f;
-        static float FACTOR = 0.2f;
+        static float MAX_DISTANCE = 2.0f; //do we need this?
 
         public CalculateDeform(Mesh mesh)
         {
             this.mesh = mesh;
-        }
-
-        private static float normalizeInput(double force)
-        {
-            return (float)force / max;
         }
 
         private float getDistance(Vector2 pt1, Vector2 pt2)
@@ -46,10 +40,11 @@ namespace DeserializeJSONFromNetwork
 
                 if (mesh.ClosedB())
                 {
-                    for (int j = 0; j < 2; j++)
+                    for (int j = 0; j < offsets.Length; j++)
                     {
                         i++;
                         toTry[i] = new Vector2(pt2.X + offsets[j], pt2.Y - 2.0f);
+                        i++;
                         toTry[i] = new Vector2(pt2.X + offsets[j], pt2.Y + 2.0f);
                     }
                 }
@@ -60,7 +55,8 @@ namespace DeserializeJSONFromNetwork
                 {
                         i++;
                         toTry[i] = new Vector2(pt2.X, pt2.Y - 2.0f);
-                        toTry[i] = new Vector2(pt2.X, pt2.Y+ 2.0f);
+                        i++;
+                        toTry[i] = new Vector2(pt2.X, pt2.Y + 2.0f);
                 }
             }
 
@@ -78,44 +74,46 @@ namespace DeserializeJSONFromNetwork
         /**
          * returns deformation of any point
          */
-        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, double force)
+        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force)
         {
-            float distance = this.getDistance(pointOfContact, pointOfInterest);
-            //if (distance > FACTOR)
-            //{
-            //    return 0;
-            //}
-            //else
-            //{
-                return normalizeInput(force) * (float)Math.Exp(-100 * distance * distance);
-            //}
+            float distance = this.getRealDistanceWithWrap(pointOfContact, pointOfInterest);
+            if (distance > MAX_DISTANCE)
+            {
+                return 0;
+            }
+            else
+            {
+                return force * (float)Math.Exp(-100 * distance * distance);
+            }
         }
 
 
         public void updateParameters(Vector2 pointOfContact, float force)
         {
+            Console.WriteLine("point = " + mesh.activeAreaStart);
             for (int i = 0; i < mesh.horizontalTess; i++)
             {
                 for (int j = 0; j < mesh.verticalTess; j++)
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
-                    float diff = deform(mesh.activeAreaStart 
-                        + new Vector2 (mesh.activeAreaSize.X * pointOfContact.X, 
-                            mesh.activeAreaSize.Y * pointOfContact.Y), pointOfInterest, 1000 * force);
+                    float diff = deform(pointOfContact, pointOfInterest, force);
                     mesh.uncommitted[i, j] = diff;
-                    //mesh.parameters[i, j].Z += diff;
                 }
             }
+            mesh.geometryNeedsResend = true;
         }
 
         public void ConsumeGesture(Gesture g)
         {
-            
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount () > 0)
             {
                 Vector3 first = s.finger(0);
-                updateParameters(first.Xy, first.Z);
+                Vector2 meshPointOfContact =
+                    mesh.activeAreaStart
+                        + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
+                meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
+                updateParameters(meshPointOfContact, first.Z);
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {

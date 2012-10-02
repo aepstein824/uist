@@ -21,6 +21,9 @@ namespace DeserializeJSONFromNetwork
         public UInt32 verticalTess, horizontalTess;
         public Vector2 activeAreaStart, activeAreaSize;
 
+        //super messy and not thread safe
+        public bool colorNeedsResend, geometryNeedsResend;
+
         public Mesh(UInt32 horizontalTess, UInt32 verticalTess)
         {
             activeAreaStart = new Vector2(0.0f, 0.0f);
@@ -40,7 +43,7 @@ namespace DeserializeJSONFromNetwork
             {
                 for (int j = 0; j < verticalTess; j++)
                 {
-                    Vector2 scaledCoord = indexCoordinateToScaledCoordinate(i,j);
+                    Vector2 scaledCoord = indexCoordinateToScaledCoordinate(i, j);
 
                     this.parameters[i, j] = new Vector3(scaledCoord.X, scaledCoord.Y, .5f);
                 }
@@ -63,19 +66,19 @@ namespace DeserializeJSONFromNetwork
                 }
             }
             //for closed meshes, link the last and first vertices
-            if (ClosedB ())
+            if (ClosedB())
             {
                 //do the bottom row, excluding the bottom right corner
                 for (UInt32 i = 0; i < horizontalTess - 1; i++)
                 {
 
-                    elements[elementIndex++] = i + 0 + (horizontalTess - 1) * horizontalTess;
-                    elements[elementIndex++] = i + 1 + (horizontalTess - 1) * horizontalTess;
+                    elements[elementIndex++] = i + 0 + (verticalTess - 1) * horizontalTess;
+                    elements[elementIndex++] = i + 1 + (verticalTess - 1) * horizontalTess;
                     elements[elementIndex++] = i + 1;
                     elements[elementIndex++] = i + 0;
                 }
             }
-            if (ClosedA ())
+            if (ClosedA())
             {
                 // do the last column
                 for (UInt32 j = 0; j < verticalTess - 1; j++)
@@ -98,6 +101,9 @@ namespace DeserializeJSONFromNetwork
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, eboid);
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elements.Length * sizeof(UInt32)), elements, BufferUsageHint.StaticDraw);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+            colorNeedsResend = true;
+            geometryNeedsResend = true;
         }
 
         public Vector2 indexCoordinateToScaledCoordinate(int i, int j)
@@ -116,19 +122,20 @@ namespace DeserializeJSONFromNetwork
                     uncommitted[i, j] = 0.0f;
                 }
             }
+            geometryNeedsResend = true;
         }
 
-	public void Commit()
-	{
-	  for (int i = 0; i < horizontalTess; i++)
-	    {
-	      for (int j = 0; j < verticalTess; j++)
-		{
-		  parameters[i, j].Z += uncommitted[i,j];
-		}
-	    }
-	  ClearUncommitted ();
-	}
+        public void Commit()
+        {
+            for (int i = 0; i < horizontalTess; i++)
+            {
+                for (int j = 0; j < verticalTess; j++)
+                {
+                    parameters[i, j].Z += uncommitted[i, j];
+                }
+            }
+            ClearUncommitted();
+        }
 
         public void DrawSelf()
         {
@@ -138,23 +145,31 @@ namespace DeserializeJSONFromNetwork
             GL.EnableClientState(ArrayCap.NormalArray);
             GL.EnableClientState(ArrayCap.ColorArray);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vboid);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * 3 * sizeof(float)), vertices, BufferUsageHint.StreamDraw);
-            GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(vertices), (IntPtr)0);
+            if (geometryNeedsResend)
+            {
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vboid);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(vertices.Length * 3 * sizeof(float)), vertices, BufferUsageHint.StreamDraw);
+                GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(vertices), (IntPtr)0);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, nboid);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normals.Length * 3 * sizeof(float)), normals, BufferUsageHint.StreamDraw);
-            GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(normals), (IntPtr)0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, nboid);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(normals.Length * 3 * sizeof(float)), normals, BufferUsageHint.StreamDraw);
+                GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(normals), (IntPtr)0);
+                geometryNeedsResend = false;
+            }
 
-            GL.Enable(EnableCap.ColorMaterial);
-            GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
+            if (colorNeedsResend)
+            {
+                GL.Enable(EnableCap.ColorMaterial);
+                GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, cboid);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(colors.Length * 4 * sizeof(float)), colors, BufferUsageHint.StreamDraw);
-            GL.ColorPointer(4, ColorPointerType.Float, BlittableValueType.StrideOf(colors), (IntPtr)0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, cboid);
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(colors.Length * 4 * sizeof(float)), colors, BufferUsageHint.StreamDraw);
+                GL.ColorPointer(4, ColorPointerType.Float, BlittableValueType.StrideOf(colors), (IntPtr)0);
+                colorNeedsResend = false;
+            }
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, eboid);
-            
+
             GL.DrawElements(BeginMode.Quads, elements.Length, DrawElementsType.UnsignedInt, 0);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -165,7 +180,12 @@ namespace DeserializeJSONFromNetwork
 
         public void RealizeParametersIntoVertices()
         {
-            if (! ClosedA ())
+
+            if (ClosedA())
+            {
+                activeAreaStart.X = Wrap2D(activeAreaStart).X;
+            }
+            else
             {
                 activeAreaStart.X = Math.Max(-1.0f, Math.Min(activeAreaStart.X, 1.0f));
                 if (activeAreaStart.X + activeAreaSize.X > 1.0f)
@@ -173,7 +193,11 @@ namespace DeserializeJSONFromNetwork
                     activeAreaStart.X = 1.0f - activeAreaSize.X;
                 }
             }
-            if (! ClosedB ())
+            if (ClosedB())
+            {
+                activeAreaStart.Y = Wrap2D(activeAreaStart).Y;
+            }
+            else
             {
                 activeAreaStart.Y = Math.Max(-1.0f, Math.Min(activeAreaStart.Y, 1.0f));
                 if (activeAreaStart.Y + activeAreaSize.Y > 1.0f)
@@ -185,18 +209,18 @@ namespace DeserializeJSONFromNetwork
             {
                 for (int j = 0; j < verticalTess; j++)
                 {
-		    Vector3 p = parameters[i, j];
-		    p.Z += uncommitted[i,j];
+                    Vector3 p = parameters[i, j];
+                    p.Z += uncommitted[i, j];
                     this.vertices[i + j * horizontalTess] = VertexFromParameters(p);
                     float green = 0.0f;
-                    if (ParameterWithinActiveArea (p))
+                    if (ParameterWithinActiveArea(p))
                     {
                         green = 1.0f;
                     }
                     this.colors[i + j * horizontalTess] = new Color4(0.0f, green, 1.0f, 1.0f);
                 }
             }
-            
+
             for (UInt32 i = 0; i < horizontalTess; i++)
             {
                 for (UInt32 j = 0; j < verticalTess; j++)
@@ -207,7 +231,7 @@ namespace DeserializeJSONFromNetwork
 
                     if (ClosedB())
                     {
-                        upj %= verticalTess; 
+                        upj %= verticalTess;
                     }
                     else
                     {
@@ -261,6 +285,21 @@ namespace DeserializeJSONFromNetwork
             }
         }
 
+        public static Vector2 Wrap2D(Vector2 toWrap)
+        {
+            Vector2 wrapped = toWrap;
+            Vector2 toPos = new Vector2(1.0f, 1.0f);
+            wrapped += toPos; //to [0, 2]
+            wrapped.X %= 2.0f;
+            wrapped.X += 2.0f; //to deal with the dumb way C# does negative mods
+            wrapped.X %= 2.0f;
+            wrapped.Y %= 2.0f;
+            wrapped.Y += 2.0f; //to deal with the dumb way C# does negative mods
+            wrapped.Y %= 2.0f;
+            wrapped -= toPos;
+            return wrapped;
+        }
+
         public bool ParameterWithinActiveArea(Vector3 p)
         {
             float xDiff = p.X - activeAreaStart.X;
@@ -277,7 +316,7 @@ namespace DeserializeJSONFromNetwork
                 yDiff += 2.0f; //to deal with the dumb way C# does negative mods
                 yDiff %= 2.0f;
             }
-            return (0 < xDiff && xDiff < activeAreaSize.X) 
+            return (0 < xDiff && xDiff < activeAreaSize.X)
                 && (0 < yDiff && yDiff < activeAreaSize.Y);
         }
 
