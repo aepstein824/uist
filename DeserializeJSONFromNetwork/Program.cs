@@ -126,6 +126,11 @@ namespace DeserializeJSONFromNetwork
 
             if (Keyboard[Key.Escape])
                 Exit();
+            if (Keyboard[Key.Z] && (Keyboard[Key.ControlLeft] || Keyboard[Key.ControlRight]))
+            {
+                if (test.undoStack.Count > 0)
+                    test.parameters = test.undoStack.Pop();
+            }
         }
 
         /// <summary>
@@ -183,7 +188,7 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            //generateGesturesThread.Start();
+            generateGesturesThread.Start();
             //PaintWindow paintWindow = new PaintWindow();
             //paintWindow.Show();
             Thread consumeGesturesThread = new Thread(() =>
