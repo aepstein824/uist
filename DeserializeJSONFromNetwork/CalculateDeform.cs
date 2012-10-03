@@ -102,7 +102,6 @@ namespace DeserializeJSONFromNetwork
                     mesh.uncommitted[i, j] = (this.editMode.mode == ModeSwitcher.EditMode.Add) ? diff : -diff;
                 }
             }
-            mesh.geometryNeedsResend = true;
         }
 
         public void ConsumeGesture(Gesture g)
