@@ -110,18 +110,15 @@ namespace DeserializeJSONFromNetwork
             if (Keyboard[Key.KeypadPlus])
             {
                 scale *= 1.1f;
-                test.colorNeedsResend = true;
             }
             else if (Keyboard[Key.KeypadSubtract])
             {
                 scale *= .9f;
-                test.colorNeedsResend = true;
             }
             test.activeAreaSize = Vector2.Multiply(test.activeAreaSize, scale);
             if (areaMove.Length > .01f)
             {
                 test.activeAreaStart += areaMove;
-                test.colorNeedsResend = true;
             }
 
             if (Keyboard[Key.Escape])
