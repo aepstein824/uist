@@ -11,6 +11,7 @@ namespace DeserializeJSONFromNetwork
 {
     abstract class Mesh
     {
+        public Stack<Vector3[,]> undoStack = new Stack<Vector3[,]>();
         public Vector3[,] parameters;
         public float[,] uncommitted;
         public Vector3[] vertices;
@@ -120,6 +121,7 @@ namespace DeserializeJSONFromNetwork
 
         public void Commit()
         {
+            undoStack.Push(parameters.Duplicate());
             for (int i = 0; i < horizontalTess; i++)
             {
                 for (int j = 0; j < verticalTess; j++)

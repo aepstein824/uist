@@ -11,6 +11,29 @@ namespace DeserializeJSONFromNetwork
 {
     public static class Extensions
     {
+        public static T[,] Duplicate<T>(this T[,] arr)
+        {
+            T[,] narr = new T[arr.GetLength(0),arr.GetLength(1)];
+            for (int x = 0; x < arr.GetLength(0); ++x)
+            {
+                for (int y = 0; y < arr.GetLength(1); ++y)
+                {
+                    narr[x, y] = arr[x, y];
+                }
+            }
+            return narr;
+        }
+
+        public static T[] Duplicate<T>(this T[] arr)
+        {
+            T[] narr = new T[arr.GetLength(0)];
+            for (int x = 0; x < arr.GetLength(0); ++x)
+            {
+                narr[x] = arr[x];
+            }
+            return narr;
+        }
+
         public static string PrintArray<T>(this T[] arr)
         {
             StringBuilder output = new StringBuilder();
