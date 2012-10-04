@@ -161,10 +161,6 @@ namespace DeserializeJSONFromNetwork
                     }
                 }
             }
-            else
-            {
-                Console.WriteLine(g.EventType);
-            }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {
                 mesh.ClearUncommitted();

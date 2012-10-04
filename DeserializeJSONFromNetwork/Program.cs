@@ -205,7 +205,7 @@ namespace DeserializeJSONFromNetwork
             {
                 WebClient webClient = new WebClient();
                 webClient.Proxy = null;
-                string IPaddress = "18.189.31.73";// webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
                 TcpClient client = new TcpClient(IPaddress, 1101);
                 TextReader reader = new StreamReader(client.GetStream());
                 while (true)
