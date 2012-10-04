@@ -92,7 +92,6 @@ namespace DeserializeJSONFromNetwork
 
         public void updateParameters(Vector2 pointOfContact, float force, float narrowness=100)
         {
-            Console.WriteLine("point = " + mesh.activeAreaStart);
             for (int i = 0; i < mesh.horizontalTess; i++)
             {
                 for (int j = 0; j < mesh.verticalTess; j++)
@@ -104,6 +103,7 @@ namespace DeserializeJSONFromNetwork
             }
         }
 
+        private bool didCommit = false;
         public void ConsumeGesture(Gesture g)
         {
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
@@ -118,9 +118,17 @@ namespace DeserializeJSONFromNetwork
                 }
                 if (isBottomLeftCornerTouched)
                 {
-                    Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
-                    mesh.Commit();
-                    return;
+                    if (!didCommit)
+                    {
+                        didCommit = true;
+                        Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
+                        mesh.Commit();
+                        return;
+                    }
+                }
+                else
+                {
+                    didCommit = false;
                 }
                 float narrowness = 100;
                 if (nonBottomLeftFingers.Length == 2)
@@ -134,6 +142,7 @@ namespace DeserializeJSONFromNetwork
                 meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
                 updateParameters(meshPointOfContact, first.Z, narrowness);
             }
+
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {
                 mesh.ClearUncommitted();
