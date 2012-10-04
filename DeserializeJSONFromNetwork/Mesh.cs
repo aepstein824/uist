@@ -200,12 +200,13 @@ namespace DeserializeJSONFromNetwork
                     Vector3 p = parameters[i, j];
                     p.Z += uncommitted[i, j];
                     this.vertices[i + j * horizontalTess] = VertexFromParameters(p);
+                    float red = (i + j) / (float)(horizontalTess + verticalTess);
                     float green = 0.0f;
                     if (ParameterWithinActiveArea(p))
                     {
                         green = 1.0f;
                     }
-                    this.colors[i + j * horizontalTess] = new Color4(0.0f, green, 1.0f, 1.0f);
+                    this.colors[i + j * horizontalTess] = new Color4(red, green, 1.0f, 1.0f);
                 }
             }
 
