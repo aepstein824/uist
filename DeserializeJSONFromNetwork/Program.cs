@@ -24,7 +24,7 @@ namespace DeserializeJSONFromNetwork
         Mesh test;
         public CalculateDeform deform;
         public Vector3 lookFrom, lookDir, lookUp;
-        float fov;
+        float fovFactor;
         /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Program()
             : base(800, 600, GraphicsMode.Default, "UIST Demo")
@@ -49,7 +49,7 @@ namespace DeserializeJSONFromNetwork
             lookFrom = new Vector3(0.0f, 0.0f, 3.0f);
             lookDir = Vector3.UnitZ;
             lookUp = Vector3.UnitY;
-            fov = (float)Math.PI / 4;
+            fovFactor = 1.0f;
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace DeserializeJSONFromNetwork
 
             GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fov, Width / (float)Height, 1.0f, 64.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fovFactor * (float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
         }
@@ -87,20 +87,15 @@ namespace DeserializeJSONFromNetwork
             }
             if (Keyboard[Key.Q])
             {
-                Vector2 meshCenterImageParam = test.activeAreaStart + .5f * test.activeAreaSize;
-                Vector3 meshCenterParam = new Vector3 (Mesh.Wrap2D(meshCenterImageParam));
-                meshCenterParam.Z = 2.0f;
-                lookFrom = test.VertexFromParameters(meshCenterParam);
-                lookDir = -1 * test.UnitC(meshCenterParam);
-                lookUp = test.UnitB(meshCenterParam);
+                ResetCameraToMeshActiveCenter(test);
             }
             if (Keyboard[Key.PageUp])
             {
-                fov *= 1.1f;
+                fovFactor *= 1.1f;
             }
             else if (Keyboard[Key.PageDown])
             {
-                fov /= 1.1f;
+                fovFactor /= 1.1f;
             }
             Vector2 areaMove = new Vector2();
             if (Keyboard[Key.Left])
@@ -137,10 +132,8 @@ namespace DeserializeJSONFromNetwork
                 scale *= .9f;
             }
             test.activeAreaSize = Vector2.Multiply(test.activeAreaSize, scale);
-            if (areaMove.Length > .01f)
-            {
-                test.activeAreaStart += areaMove;
-            }
+
+            MoveByThenResetCamera(test, areaMove);
 
             if (Keyboard[Key.Escape])
                 Exit();
@@ -151,6 +144,20 @@ namespace DeserializeJSONFromNetwork
             }
         }
 
+        private void MoveByThenResetCamera(Mesh m, Vector2 d)
+        {
+            m.activeAreaStart += d;
+            ResetCameraToMeshActiveCenter(m);
+        }
+
+        private void ResetCameraToMeshActiveCenter(Mesh m)
+        {
+            Vector2 meshCenterImageParam = m.activeAreaStart + .5f * m.activeAreaSize;
+            Vector3 meshCenterParam = new Vector3(Mesh.Wrap2D(meshCenterImageParam));
+            meshCenterParam.Z = 2.0f;
+            this.SetCameraToParameters(test, meshCenterParam);
+        }
+
         /// <summary>
         /// Called when it is time to render the next frame. Add your rendering code here.
         /// </summary>
@@ -159,7 +166,7 @@ namespace DeserializeJSONFromNetwork
         {
             base.OnRenderFrame(e);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fov, Width / (float)Height, 1.0f, 64.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fovFactor, Width / (float)Height, 1.0f, 64.0f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
 
@@ -268,6 +275,13 @@ namespace DeserializeJSONFromNetwork
             app.Run();
             */
             
+        }
+        
+        public void SetCameraToParameters (Mesh m, Vector3 param)
+        {
+            lookFrom = m.VertexFromParameters(param);
+            lookDir = -1 * m.UnitC(param);
+            lookUp = m.UnitB(param);
         }
     }
 }
