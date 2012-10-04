@@ -232,6 +232,15 @@ namespace DeserializeJSONFromNetwork
             return c;
         }
 
+        public double NormedDistance()
+        {
+            Vector3 f0 = finger(0);
+            Vector3 f1 = finger(1);
+            float dx = f0.X - f1.X;
+            float dy = f0.Y - f1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
         /* Returns the distance, in touchpad pixels, between two fingers currently touching.
          * 
          */

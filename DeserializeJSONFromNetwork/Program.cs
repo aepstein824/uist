@@ -254,6 +254,7 @@ namespace DeserializeJSONFromNetwork
             {
                 ModeSwitcher modeSwitcher = new ModeSwitcher();
                 modeSwitcher.currentMode = editMode;
+                editMode.modeSwitcher = modeSwitcher;
                 modeSwitcher.Show();
                 Application app = new Application();
                 app.Run();
