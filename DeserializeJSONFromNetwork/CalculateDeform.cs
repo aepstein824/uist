@@ -104,45 +104,67 @@ namespace DeserializeJSONFromNetwork
         }
 
         private bool didCommit = false;
+        private Vector2 fingerStart;
         public void ConsumeGesture(Gesture g)
         {
+            
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
-            if (s != null && s.FingerCount () > 0)
+            if (s != null && s.FingerCount() > 0)
             {
-                bool isBottomLeftCornerTouched = s.isBottomLeftCornerTouched();
-                Vector3[] nonBottomLeftFingers = s.fingersExcludingBottomLeftCorner();
-                if (nonBottomLeftFingers.Length == 0)
+                if (this.editMode.mode == ModeSwitcher.EditMode.Add || this.editMode.mode == ModeSwitcher.EditMode.Subtract)
                 {
-                    isBottomLeftCornerTouched = false;
-                    nonBottomLeftFingers = s.TouchedFingers();
-                }
-                if (isBottomLeftCornerTouched)
-                {
-                    if (!didCommit)
+                    bool isBottomLeftCornerTouched = s.isBottomLeftCornerTouched();
+                    Vector3[] nonBottomLeftFingers = s.fingersExcludingBottomLeftCorner();
+                    if (nonBottomLeftFingers.Length == 0)
                     {
-                        didCommit = true;
-                        Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
-                        mesh.Commit();
-                        return;
+                        isBottomLeftCornerTouched = false;
+                        nonBottomLeftFingers = s.TouchedFingers();
+                    }
+                    if (isBottomLeftCornerTouched)
+                    {
+                        if (!didCommit)
+                        {
+                            didCommit = true;
+                            Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
+                            mesh.Commit();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        didCommit = false;
+                    }
+                    float narrowness = 100;
+                    if (nonBottomLeftFingers.Length == 2)
+                    {
+                        narrowness = 100f / (float)s.NormedDistance();
+                    }
+                    Vector3 first = nonBottomLeftFingers[0];
+                    Vector2 meshPointOfContact =
+                        mesh.activeAreaStart
+                            + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
+                    meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
+                    updateParameters(meshPointOfContact, first.Z, narrowness);
+                }
+                else if (this.editMode.mode == ModeSwitcher.EditMode.Navigate)
+                {
+
+                    if (g.EventType == GestureGenerator.EventType.APPEAR)
+                    {
+
+                        fingerStart = s.finger(0).Xy;
+                    }
+                    else
+                    {
+                        Vector2 dX = s.finger(0).Xy - fingerStart;
+                        mesh.activeAreaStart += dX / 30.0f;
                     }
                 }
-                else
-                {
-                    didCommit = false;
-                }
-                float narrowness = 100;
-                if (nonBottomLeftFingers.Length == 2)
-                {
-                    narrowness = 100f / (float)s.NormedDistance();
-                }
-                Vector3 first = nonBottomLeftFingers[0];
-                Vector2 meshPointOfContact =
-                    mesh.activeAreaStart
-                        + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
-                meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
-                updateParameters(meshPointOfContact, first.Z, narrowness);
             }
-
+            else
+            {
+                Console.WriteLine(g.EventType);
+            }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {
                 mesh.ClearUncommitted();

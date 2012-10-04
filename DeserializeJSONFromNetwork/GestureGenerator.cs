@@ -88,6 +88,7 @@ namespace DeserializeJSONFromNetwork
                 gestures.Enqueue(new Gesture(origState, EventType.VANISH, stateEntryTime, dataSinceStateStart));
                 stateEntryTime = DateTime.Now;
                 dataSinceStateStart = Deque<SensorData>.Empty;
+                dataSinceStateStart = dataSinceStateStart.EnqueueRight(sd);
                 gestures.Enqueue(new Gesture(state, EventType.APPEAR, stateEntryTime, dataSinceStateStart));
             }
             else
