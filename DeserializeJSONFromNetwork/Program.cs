@@ -19,12 +19,11 @@ using OpenTK.Input;
 
 namespace DeserializeJSONFromNetwork
 {
-    
-
     class Program : GameWindow
     {
         Mesh test;
         public CalculateDeform deform;
+        public Vector3 lookFrom, lookDir, lookUp;
         /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Program()
             : base(800, 600, GraphicsMode.Default, "UIST Demo")
@@ -46,6 +45,10 @@ namespace DeserializeJSONFromNetwork
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
+            lookFrom = new Vector3(0.0f, 0.0f, 3.0f);
+            lookDir = Vector3.UnitZ;
+            lookUp = Vector3.UnitY;
+
         }
 
         /// <summary>
@@ -80,6 +83,15 @@ namespace DeserializeJSONFromNetwork
             else if (Keyboard[Key.O])
             {
                 test.ClearUncommitted();
+            }
+            if (Keyboard[Key.Q])
+            {
+                Vector2 meshCenterImageParam = test.activeAreaStart + .5f * test.activeAreaSize;
+                Vector3 meshCenterParam = new Vector3 (Mesh.Wrap2D(meshCenterImageParam));
+                meshCenterParam.Z = 2.0f;
+                lookFrom = test.VertexFromParameters(meshCenterParam);
+                lookDir = -1 * test.UnitC(meshCenterParam);
+                lookUp = test.UnitB(meshCenterParam);
             }
             Vector2 areaMove = new Vector2();
             if (Keyboard[Key.Left])
@@ -141,7 +153,7 @@ namespace DeserializeJSONFromNetwork
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Enable(EnableCap.DepthTest);
 
-            Matrix4 modelview = Matrix4.LookAt(new Vector3(0.0f, 0.0f, 3.0f), -1 * Vector3.UnitZ, Vector3.UnitY);
+            Matrix4 modelview = Matrix4.LookAt(lookFrom, lookDir, lookUp);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 

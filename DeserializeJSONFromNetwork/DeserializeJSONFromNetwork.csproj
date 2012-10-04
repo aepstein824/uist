@@ -72,6 +72,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SensorData.cs" />
     <Compile Include="SphericalMesh.cs" />
+    <Compile Include="TargetTrackingSystem.cs" />
     <Compile Include="TorusMesh.cs" />
   </ItemGroup>
   <ItemGroup>
