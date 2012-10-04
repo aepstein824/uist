@@ -109,12 +109,25 @@ namespace DeserializeJSONFromNetwork
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount () > 0)
             {
+                bool isBottomLeftCornerTouched = s.isBottomLeftCornerTouched();
+                Vector3[] nonBottomLeftFingers = s.fingersExcludingBottomLeftCorner();
+                if (nonBottomLeftFingers.Length == 0)
+                {
+                    isBottomLeftCornerTouched = false;
+                    nonBottomLeftFingers = s.TouchedFingers();
+                }
+                if (isBottomLeftCornerTouched)
+                {
+                    Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
+                    mesh.Commit();
+                    return;
+                }
                 float narrowness = 100;
-                if (s.FingerCount() == 2)
+                if (nonBottomLeftFingers.Length == 2)
                 {
                     narrowness = 100f / (float)s.NormedDistance();
                 }
-                Vector3 first = s.finger(0);
+                Vector3 first = nonBottomLeftFingers[0];
                 Vector2 meshPointOfContact =
                     mesh.activeAreaStart
                         + Vector2.Multiply(mesh.activeAreaSize, first.Xy);

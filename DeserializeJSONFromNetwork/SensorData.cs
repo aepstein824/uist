@@ -118,6 +118,24 @@ namespace DeserializeJSONFromNetwork
             return bestidx;
         }
 
+        Vector3 bottomLeftFinger()
+        {
+            return TouchedFingers().OrderBy(x => x.X * x.X + x.Y * x.Y).FirstOrDefault();
+        }
+
+        public bool isBottomLeftCornerTouched()
+        {
+            Vector3 bottomLeft = bottomLeftFinger();
+            if (bottomLeft == null) return false;
+            return bottomLeft.X * bottomLeft.X + bottomLeft.Y * bottomLeft.Y < 0.1;
+        }
+
+        public Vector3[] fingersExcludingBottomLeftCorner()
+        {
+            Vector3 bottomLeft = bottomLeftFinger();
+            return TouchedFingers().Where(x => x != bottomLeft).ToArray();
+        }
+
         public int getIndexWithHighestPressure(params float[] pressures)
         {
             int bestidx = 0;
@@ -236,9 +254,7 @@ namespace DeserializeJSONFromNetwork
         {
             Vector3 f0 = finger(0);
             Vector3 f1 = finger(1);
-            float dx = f0.X - f1.X;
-            float dy = f0.Y - f1.Y;
-            return Math.Sqrt(dx * dx + dy * dy);
+            return f0.Distance2DBetween(f1);
         }
 
         /* Returns the distance, in touchpad pixels, between two fingers currently touching.

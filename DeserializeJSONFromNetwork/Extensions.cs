@@ -7,10 +7,21 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
+
 namespace DeserializeJSONFromNetwork
 {
     public static class Extensions
     {
+        public static double Distance2DBetween(this Vector3 v, Vector3 o)
+        {
+            float dx = v.X - o.X;
+            float dy = v.Y - o.Y;
+            return Math.Sqrt(dx*dx + dy*dy);
+        }
+
         public static T[,] Duplicate<T>(this T[,] arr)
         {
             T[,] narr = new T[arr.GetLength(0),arr.GetLength(1)];
