@@ -76,7 +76,7 @@ namespace DeserializeJSONFromNetwork
         /**
          * returns deformation of any point
          */
-        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force)
+        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force, float narrowness=100)
         {
             float distance = this.getRealDistanceWithWrap(pointOfContact, pointOfInterest);
             if (distance > MAX_DISTANCE)
@@ -85,12 +85,12 @@ namespace DeserializeJSONFromNetwork
             }
             else
             {
-                return force * (float)Math.Exp(-100 * distance * distance);
+                return force * (float)Math.Exp(-narrowness * distance * distance);
             }
         }
 
 
-        public void updateParameters(Vector2 pointOfContact, float force)
+        public void updateParameters(Vector2 pointOfContact, float force, float narrowness=100)
         {
             Console.WriteLine("point = " + mesh.activeAreaStart);
             for (int i = 0; i < mesh.horizontalTess; i++)
@@ -98,7 +98,7 @@ namespace DeserializeJSONFromNetwork
                 for (int j = 0; j < mesh.verticalTess; j++)
                 {
                     Vector2 pointOfInterest = mesh.indexCoordinateToScaledCoordinate(i,j);
-                    float diff = deform(pointOfContact, pointOfInterest, force);
+                    float diff = deform(pointOfContact, pointOfInterest, force, narrowness);
                     mesh.uncommitted[i, j] = (this.editMode.mode == ModeSwitcher.EditMode.Add) ? diff : -diff;
                 }
             }
@@ -109,12 +109,17 @@ namespace DeserializeJSONFromNetwork
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount () > 0)
             {
+                float narrowness = 100;
+                if (s.FingerCount() == 2)
+                {
+                    narrowness = 100f / (float)s.NormedDistance();
+                }
                 Vector3 first = s.finger(0);
                 Vector2 meshPointOfContact =
                     mesh.activeAreaStart
                         + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
                 meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
-                updateParameters(meshPointOfContact, first.Z);
+                updateParameters(meshPointOfContact, first.Z, narrowness);
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {

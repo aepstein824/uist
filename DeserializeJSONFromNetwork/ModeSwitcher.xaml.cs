@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -33,10 +34,40 @@ namespace DeserializeJSONFromNetwork
 
         public class EditModeWrapper
         {
-            public EditMode mode = EditMode.Add;
+            public EditMode mode
+            {
+                get
+                {
+                    return _mode;
+                }
+                set
+                {
+                    var prevval = _mode;
+                    _mode = value;
+                    if (modeSwitcher != null && _mode != prevval)
+                    {
+                        modeSwitcher.Dispatcher.BeginInvoke(new ThreadStart(() =>
+                        {
+                            modeSwitcher.setModeCheckbox(_mode);
+                        }));
+                    }
+                }
+            }
+            private EditMode _mode = EditMode.Add;
+            public ModeSwitcher modeSwitcher = null;
         }
 
         public EditModeWrapper currentMode = new EditModeWrapper();
+
+        public void setModeCheckbox(EditMode mode)
+        {
+            if (mode == EditMode.Add)
+                this.radioButtonAdd.IsChecked = true;
+            if (mode == EditMode.Navigate)
+                this.radioButtonNavigate.IsChecked = true;
+            if (mode == EditMode.Subtract)
+                this.radioButtonSubtract.IsChecked = true;
+        }
 
         private void radioButtonNavigate_Checked(object sender, RoutedEventArgs e)
         {
