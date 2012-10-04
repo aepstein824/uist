@@ -25,7 +25,7 @@ namespace DeserializeJSONFromNetwork
         public Mesh(UInt32 horizontalTess, UInt32 verticalTess)
         {
             activeAreaStart = new Vector2(0.0f, 0.0f);
-            activeAreaSize = new Vector2(.3f, .3f);
+            activeAreaSize = new Vector2(.6f, .6f);
 
             GL.GenBuffers(1, out vboid);
             GL.GenBuffers(1, out eboid);

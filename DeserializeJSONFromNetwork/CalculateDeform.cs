@@ -158,6 +158,12 @@ namespace DeserializeJSONFromNetwork
                     {
                         Vector2 dX = s.finger(0).Xy - fingerStart;
                         mesh.activeAreaStart += dX / 30.0f;
+                        float fovFactor = 1.0f;
+                        if (s.FingerCount() > 1)
+                        {
+                            //fovFactor = 1 + ((float) s.NormedDistance() / 100.0f);
+                            mesh.activeAreaSize *= fovFactor;
+                        }
                     }
                 }
             }
