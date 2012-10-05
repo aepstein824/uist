@@ -12,39 +12,49 @@ namespace DeserializeJSONFromNetwork
             base(h, v)
         { }
 
+        public Vector3 SphereParams(Vector3 p)
+        {
+            float theta = p.X * (float)Math.PI;
+            float phi = (.5f * (p.Y - 1)) * (float)Math.PI ;
+            float r = p.Z;
+            return new Vector3(theta, phi, r);
+        }
+
         public override Vector3 VertexFromParameters(Vector3 p)
         {
-            float phi = -1 * .5f * (p.X + 1) * (float) Math.PI;
-            float theta = p.Y * (float) Math.PI;
-            float r = p.Z;
+            Vector3 s = SphereParams(p);
             return new Vector3(
-                (float)(r * Math.Sin(phi) * Math.Cos(theta)), 
-                (float)(r * Math.Sin(phi) * Math.Sin(theta)), 
-                (float)(r * Math.Cos (phi)));
+                (float)(s.Z * Math.Sin(s.Y) * Math.Cos(s.X)), 
+                (float)(s.Z * Math.Sin(s.Y) * Math.Sin(s.X)), 
+                (float)(s.Z * Math.Cos (s.Y)));
         }
 
-        public override bool ClosedA() { return false; }
-        public override bool ClosedB() { return true; }
+        public override bool ClosedA() { return true; }
+        public override bool ClosedB() { return false; }
 
         public override float Epsilon() { return .0001f; }
+
         public override Vector3 UnitA(Vector3 p)
         {
-            float phi = -1 * .5f * (p.X + 1) * (float) Math.PI;
-            float theta = p.Y * (float) Math.PI;
-            float r = p.Z;
-            return new Vector3(
-                (float)(Math.Cos(phi) * Math.Cos(theta)), 
-                (float)(Math.Cos(phi) * Math.Sin(theta)), 
-                (float)(Math.Sin(phi)));
-        }
-        public override Vector3 UnitB(Vector3 p)
-        {
-            float theta = p.Y * (float)Math.PI;
+            float theta = SphereParams(p).X;
             return new Vector3(
                 (float)Math.Sin(-1 * theta),
                 (float)Math.Cos(theta),
                 0);
         }
+
+        public override Vector3 UnitB(Vector3 p)
+        {
+            Vector3 s = SphereParams(p);
+            float theta = s.X;
+            float phi = s.Y;
+            float r = s.Z;
+            return new Vector3(
+                (float)(Math.Cos(phi) * Math.Cos(theta)), 
+                (float)(Math.Cos(phi) * Math.Sin(theta)), 
+                (float)(-1 * Math.Sin(phi)));
+        }
+
         public override Vector3 UnitC(Vector3 p)
         {
             p.Z = 1.0f;
