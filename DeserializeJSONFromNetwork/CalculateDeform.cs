@@ -134,8 +134,8 @@ namespace DeserializeJSONFromNetwork
                     {
                         didCommit = false;
                     }
-                    float narrowness = 100;
-                    if (nonBottomLeftFingers.Length == 2)
+                    float narrowness = 1000;
+                    if (s.FingerCount() == 2)
                     {
                         narrowness = 100f / (float)s.NormedDistance();
                     }
@@ -161,7 +161,7 @@ namespace DeserializeJSONFromNetwork
                         float fovFactor = 1.0f;
                         if (s.FingerCount() > 1)
                         {
-                            //fovFactor = 1 + ((float) s.NormedDistance() / 100.0f);
+                            fovFactor = 1 + ((((float)s.NormedDistance()) - .5f) / 10.0f);
                             mesh.activeAreaSize *= fovFactor;
                         }
                     }

@@ -31,7 +31,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new SphericalMesh(50, 200);
+            test = new SphericalMesh(150, 70);
             deform = new CalculateDeform(test);
             VSync = VSyncMode.On;
         }
@@ -166,7 +166,8 @@ namespace DeserializeJSONFromNetwork
         {
             base.OnRenderFrame(e);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fovFactor, Width / (float)Height, 1.0f, 64.0f);
+            float angle = (test.activeAreaSize.Length / .84f) * (float)Math.PI / 4;
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView( angle, Width / (float)Height, 1.0f, 64.0f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
 
