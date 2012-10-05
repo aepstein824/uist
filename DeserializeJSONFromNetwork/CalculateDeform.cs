@@ -113,14 +113,9 @@ namespace DeserializeJSONFromNetwork
             {
                 if (this.editMode.mode == ModeSwitcher.EditMode.Add || this.editMode.mode == ModeSwitcher.EditMode.Subtract)
                 {
-                    bool isBottomLeftCornerTouched = s.isBottomLeftCornerTouched();
-                    Vector3[] nonBottomLeftFingers = s.fingersExcludingBottomLeftCorner();
-                    if (nonBottomLeftFingers.Length == 0)
-                    {
-                        isBottomLeftCornerTouched = false;
-                        nonBottomLeftFingers = s.TouchedFingers();
-                    }
-                    if (isBottomLeftCornerTouched)
+                    Vector3 first = s.finger(0);
+                    Console.WriteLine(first.Z);
+                    if (first.Z > .5)
                     {
                         if (!didCommit)
                         {
@@ -139,7 +134,6 @@ namespace DeserializeJSONFromNetwork
                     {
                         narrowness = 100f / (float)s.NormedDistance();
                     }
-                    Vector3 first = nonBottomLeftFingers[0];
                     Vector2 meshPointOfContact =
                         mesh.activeAreaStart
                             + Vector2.Multiply(mesh.activeAreaSize, first.Xy);

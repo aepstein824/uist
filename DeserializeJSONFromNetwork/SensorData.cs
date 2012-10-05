@@ -28,7 +28,7 @@ namespace DeserializeJSONFromNetwork
         static int padMinY = 1000;
         static int padMaxY = 4700;
         static int padHeight = 3700;
-        static int maxPressure = 1000;
+        static int maxPressure = 1200;
 
         public override string ToString()
         {
@@ -77,7 +77,7 @@ namespace DeserializeJSONFromNetwork
                 vector.Y = 0.0f;
             vector.Z = (float)data[2] / maxPressure;
             if (vector.Z < 0.0f)
-                vector.Z = 1.0f; // high pressures for whatever reason become negative
+                vector.Z = 0.0f; // high pressures for whatever reason become negative
             if (vector.Z > 1.0f)
                 vector.Z = 1.0f;
             return vector;
