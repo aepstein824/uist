@@ -220,7 +220,7 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            //generateGesturesThread.Start();
+            generateGesturesThread.Start();
             
             //PaintWindow paintWindow = new PaintWindow();
             //paintWindow.Show();
@@ -282,13 +282,17 @@ namespace DeserializeJSONFromNetwork
                 while (true)
                 {
                     // x,y pans
-                    float x = game.Mouse.X;
-                    float y = game.Mouse.Y;
-                    float diffx = x - prevX;
-                    prevX = x;
-                    float diffy = -(y - prevY);
-                    prevY = y;
-                    game.test.activeAreaStart += new Vector2(diffx*0.003f, diffy*0.003f);
+                    POINT mouseP;
+                    if (MouseUtils.GetCursorPos(out mouseP))
+                    {
+                        float x = mouseP.X;
+                        float y = mouseP.Y;
+                        float diffx = x - prevX;
+                        prevX = x;
+                        float diffy = -(y - prevY);
+                        prevY = y;
+                        game.test.activeAreaStart += new Vector2(diffx*0.003f, diffy*0.003f);
+                    }
 
                     // wheel zooms
                     float wheel = game.Mouse.WheelPrecise;
@@ -304,6 +308,17 @@ namespace DeserializeJSONFromNetwork
                 }
             });
             mouseThread.Start();
+            game.Mouse.ButtonDown += (object o, MouseButtonEventArgs e) =>
+            {
+                if (e.Button == MouseButton.Left)
+                {
+                    game.deform.editMode.mode = ModeSwitcher.EditMode.Add;
+                }
+                if (e.Button == MouseButton.Right)
+                {
+                    game.deform.editMode.mode = ModeSwitcher.EditMode.Subtract;
+                }
+            };
             game.Run();
             /*
             Application app = new Application();

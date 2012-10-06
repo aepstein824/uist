@@ -8,7 +8,6 @@
     <Grid>
         <RadioButton IsChecked="True" Content="Add" Height="16" HorizontalAlignment="Left" Margin="5,41,0,0" Name="radioButtonAdd" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonAdd_Checked" />
         <RadioButton Content="Subtract" Height="16" HorizontalAlignment="Left" Margin="5,63,0,0" Name="radioButtonSubtract" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonSubtract_Checked" />
-        <RadioButton Content="Navigate" Height="16" HorizontalAlignment="Left" Margin="5,85,0,0" Name="radioButtonNavigate" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonNavigate_Checked" />
         <Label Content="Edit Mode" Height="28" HorizontalAlignment="Left" Margin="5,7,0,0" Name="label1" VerticalAlignment="Top" />
     </Grid>
 </Window>

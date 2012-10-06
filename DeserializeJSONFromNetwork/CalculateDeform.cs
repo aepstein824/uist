@@ -147,27 +147,6 @@ namespace DeserializeJSONFromNetwork
                     meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
                     updateParameters(meshPointOfContact, first.Z, narrowness);
                 }
-                else if (this.editMode.mode == ModeSwitcher.EditMode.Navigate)
-                {
-
-                    if (g.EventType == GestureGenerator.EventType.APPEAR)
-                    {
-
-                        fingerStart = s.finger(0).Xy;
-                    }
-                    else
-                    {
-                        Vector2 dX = s.finger(0).Xy - fingerStart;
-                        //Vector2 dX = new Vector2();
-                        mesh.activeAreaStart += dX / 30.0f;
-                        float fovFactor = 1.0f;
-                        if (s.FingerCount() > 1)
-                        {
-                            fovFactor = 1 + ((((float)s.NormedDistance()) - .5f) / 10.0f);
-                            mesh.activeAreaSize *= fovFactor;
-                        }
-                    }
-                }
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {

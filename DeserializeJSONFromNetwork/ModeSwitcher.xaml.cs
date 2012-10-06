@@ -29,7 +29,6 @@ namespace DeserializeJSONFromNetwork
         {
             Add,
             Subtract,
-            Navigate,
         }
 
         public class EditModeWrapper
@@ -63,16 +62,10 @@ namespace DeserializeJSONFromNetwork
         {
             if (mode == EditMode.Add)
                 this.radioButtonAdd.IsChecked = true;
-            if (mode == EditMode.Navigate)
-                this.radioButtonNavigate.IsChecked = true;
             if (mode == EditMode.Subtract)
                 this.radioButtonSubtract.IsChecked = true;
         }
 
-        private void radioButtonNavigate_Checked(object sender, RoutedEventArgs e)
-        {
-            currentMode.mode = EditMode.Navigate;
-        }
 
         private void radioButtonSubtract_Checked(object sender, RoutedEventArgs e)
         {
