@@ -104,10 +104,12 @@ namespace DeserializeJSONFromNetwork
         }
 
         private bool didCommit = false;
+        private float pendingCommit = 0.0f;
         private Vector2 fingerStart;
+
         public void ConsumeGesture(Gesture g)
         {
-            
+            float commitThreshold = .02f;
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount() > 0)
             {
@@ -115,14 +117,22 @@ namespace DeserializeJSONFromNetwork
                 {
                     Vector3 first = s.finger(0);
                     Console.WriteLine(first.Z);
-                    if (first.Z > .5)
+                    if (pendingCommit > first.Z && pendingCommit > commitThreshold)
                     {
                         if (!didCommit)
                         {
                             didCommit = true;
                             Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
                             mesh.Commit();
+                            pendingCommit = 0.0f;
                             return;
+                        }
+                    }
+                    if (first.Z > commitThreshold)
+                    {
+                        if (!didCommit)
+                        {
+                            pendingCommit = first.Z;
                         }
                     }
                     else
