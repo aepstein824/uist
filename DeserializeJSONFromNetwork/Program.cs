@@ -17,11 +17,13 @@ using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Input;
 
+using System.Runtime.InteropServices;
+
 namespace DeserializeJSONFromNetwork
 {
     class Program : GameWindow
     {
-        Mesh test;
+        public Mesh test;
         public CalculateDeform deform;
         public Vector3 lookFrom, lookDir, lookUp;
         float fovFactor;
@@ -33,6 +35,7 @@ namespace DeserializeJSONFromNetwork
             Vector3[] vertices = new Vector3 [size * size];
             test = new SphericalMesh(150, 70);
             deform = new CalculateDeform(test);
+            deform.program = this;
             VSync = VSyncMode.On;
         }
 
@@ -196,7 +199,6 @@ namespace DeserializeJSONFromNetwork
         [STAThread]
         static void Main(string[] args)
         {
-
             Program game = new Program();
             ModeSwitcher.EditModeWrapper editMode = new ModeSwitcher.EditModeWrapper();
             game.deform.editMode = editMode;
@@ -218,7 +220,8 @@ namespace DeserializeJSONFromNetwork
                     gestureGenerator.HandleSensorData(sensor);
                 }
             });
-            generateGesturesThread.Start();
+            //generateGesturesThread.Start();
+            
             //PaintWindow paintWindow = new PaintWindow();
             //paintWindow.Show();
             Thread consumeGesturesThread = new Thread(() =>
@@ -269,6 +272,38 @@ namespace DeserializeJSONFromNetwork
             });
             guiThread.SetApartmentState(ApartmentState.STA);
             guiThread.Start();
+
+            Thread mouseThread = new Thread(() =>
+            {
+                float zoomFactor = 1.0f;
+                float prevWheel = 0.0f;
+                float prevX = 0.0f;
+                float prevY = 0.0f;
+                while (true)
+                {
+                    // x,y pans
+                    float x = game.Mouse.X;
+                    float y = game.Mouse.Y;
+                    float diffx = x - prevX;
+                    prevX = x;
+                    float diffy = -(y - prevY);
+                    prevY = y;
+                    game.test.activeAreaStart += new Vector2(diffx*0.003f, diffy*0.003f);
+
+                    // wheel zooms
+                    float wheel = game.Mouse.WheelPrecise;
+                    float diff = wheel - prevWheel;
+                    zoomFactor += diff * 0.01f;
+                    if (zoomFactor > 2.0f) zoomFactor = 2.0f;
+                    if (zoomFactor < 0.01f) zoomFactor = 0.01f;
+                    game.test.activeAreaSize = new Vector2(zoomFactor, zoomFactor);
+                    //game.test.activeAreaSize *= (wheel - prevWheel);
+                    Console.WriteLine(zoomFactor);
+                    prevWheel = wheel;
+                    Thread.Sleep(10);
+                }
+            });
+            mouseThread.Start();
             game.Run();
             /*
             Application app = new Application();

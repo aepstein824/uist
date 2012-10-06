@@ -14,6 +14,7 @@ namespace DeserializeJSONFromNetwork
         public ModeSwitcher.EditModeWrapper editMode = null;
 
         Mesh mesh;
+        public Program program;
         static float MAX_DISTANCE = 2.0f; //do we need this?
 
         public CalculateDeform(Mesh mesh)
@@ -157,6 +158,7 @@ namespace DeserializeJSONFromNetwork
                     else
                     {
                         Vector2 dX = s.finger(0).Xy - fingerStart;
+                        //Vector2 dX = new Vector2();
                         mesh.activeAreaStart += dX / 30.0f;
                         float fovFactor = 1.0f;
                         if (s.FingerCount() > 1)
