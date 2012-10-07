@@ -22,6 +22,12 @@ namespace DeserializeJSONFromNetwork
         public UInt32 verticalTess, horizontalTess;
         public Vector2 activeAreaStart, activeAreaSize;
 
+        public void Undo()
+        {
+            if (undoStack.Count > 0)
+                parameters = undoStack.Pop();
+        }
+
         public Mesh(UInt32 horizontalTess, UInt32 verticalTess)
         {
             activeAreaStart = new Vector2(0.0f, 0.0f);

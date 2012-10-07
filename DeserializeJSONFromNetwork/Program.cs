@@ -142,8 +142,7 @@ namespace DeserializeJSONFromNetwork
                 Exit();
             if (Keyboard[Key.Z] && (Keyboard[Key.ControlLeft] || Keyboard[Key.ControlRight]))
             {
-                if (test.undoStack.Count > 0)
-                    test.parameters = test.undoStack.Pop();
+                test.Undo();
             }
         }
 
@@ -297,12 +296,12 @@ namespace DeserializeJSONFromNetwork
                     // wheel zooms
                     float wheel = game.Mouse.WheelPrecise;
                     float diff = wheel - prevWheel;
-                    zoomFactor += diff * 0.01f;
+                    zoomFactor += -diff * 0.01f;
                     if (zoomFactor > 2.0f) zoomFactor = 2.0f;
                     if (zoomFactor < 0.01f) zoomFactor = 0.01f;
                     game.test.activeAreaSize = new Vector2(zoomFactor, zoomFactor);
                     //game.test.activeAreaSize *= (wheel - prevWheel);
-                    Console.WriteLine(zoomFactor);
+                    //Console.WriteLine(zoomFactor);
                     prevWheel = wheel;
                     Thread.Sleep(10);
                 }
@@ -312,11 +311,22 @@ namespace DeserializeJSONFromNetwork
             {
                 if (e.Button == MouseButton.Left)
                 {
-                    game.deform.editMode.mode = ModeSwitcher.EditMode.Add;
+                    game.deform.editMode.mode = ModeSwitcher.EditMode.Subtract;
                 }
+                //if (e.Button == MouseButton.Right)
+                //{
+                //    game.deform.editMode.mode = ModeSwitcher.EditMode.Subtract;
+                //}
                 if (e.Button == MouseButton.Right)
                 {
-                    game.deform.editMode.mode = ModeSwitcher.EditMode.Subtract;
+                    game.test.Undo();
+                }
+            };
+            game.Mouse.ButtonUp += (object o, MouseButtonEventArgs e) =>
+            {
+                if (e.Button == MouseButton.Left)
+                {
+                    game.deform.editMode.mode = ModeSwitcher.EditMode.Add;
                 }
             };
             game.Run();
