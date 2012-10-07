@@ -67,6 +67,7 @@
     <Compile Include="ModeSwitcher.xaml.cs">
       <DependentUpon>ModeSwitcher.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MouseUtils.cs" />
     <Compile Include="PaintWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

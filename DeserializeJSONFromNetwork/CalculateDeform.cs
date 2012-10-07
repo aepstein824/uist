@@ -14,6 +14,7 @@ namespace DeserializeJSONFromNetwork
         public ModeSwitcher.EditModeWrapper editMode = null;
 
         Mesh mesh;
+        public Program program;
         static float MAX_DISTANCE = 2.0f; //do we need this?
 
         public CalculateDeform(Mesh mesh)
@@ -149,26 +150,6 @@ namespace DeserializeJSONFromNetwork
                             + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
                     meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
                     updateParameters(meshPointOfContact, first.Z, narrowness);
-                }
-                else if (this.editMode.mode == ModeSwitcher.EditMode.Navigate)
-                {
-
-                    if (g.EventType == GestureGenerator.EventType.APPEAR)
-                    {
-
-                        fingerStart = s.finger(0).Xy;
-                    }
-                    else
-                    {
-                        Vector2 dX = s.finger(0).Xy - fingerStart;
-                        mesh.activeAreaStart += dX / 30.0f;
-                        float fovFactor = 1.0f;
-                        if (s.FingerCount() > 1)
-                        {
-                            fovFactor = 1 + ((((float)s.NormedDistance()) - .5f) / 10.0f);
-                            mesh.activeAreaSize *= fovFactor;
-                        }
-                    }
                 }
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
