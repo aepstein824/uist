@@ -104,30 +104,35 @@ namespace DeserializeJSONFromNetwork
         }
 
         private bool didCommit = false;
+        private float pendingCommit = 0.0f;
         private Vector2 fingerStart;
+
         public void ConsumeGesture(Gesture g)
         {
-            
+            float commitThreshold = .02f;
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount() > 0)
             {
                 if (this.editMode.mode == ModeSwitcher.EditMode.Add || this.editMode.mode == ModeSwitcher.EditMode.Subtract)
                 {
-                    bool isBottomLeftCornerTouched = s.isBottomLeftCornerTouched();
-                    Vector3[] nonBottomLeftFingers = s.fingersExcludingBottomLeftCorner();
-                    if (nonBottomLeftFingers.Length == 0)
-                    {
-                        isBottomLeftCornerTouched = false;
-                        nonBottomLeftFingers = s.TouchedFingers();
-                    }
-                    if (isBottomLeftCornerTouched)
+                    Vector3 first = s.finger(0);
+                    Console.WriteLine(first.Z);
+                    if (pendingCommit > (first.Z + .02) && pendingCommit > commitThreshold)
                     {
                         if (!didCommit)
                         {
                             didCommit = true;
                             Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
                             mesh.Commit();
+                            pendingCommit = 0.0f;
                             return;
+                        }
+                    }
+                    if (first.Z > commitThreshold)
+                    {
+                        if (!didCommit)
+                        {
+                            pendingCommit = first.Z;
                         }
                     }
                     else
@@ -139,7 +144,6 @@ namespace DeserializeJSONFromNetwork
                     {
                         narrowness = 100f / (float)s.NormedDistance();
                     }
-                    Vector3 first = nonBottomLeftFingers[0];
                     Vector2 meshPointOfContact =
                         mesh.activeAreaStart
                             + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
