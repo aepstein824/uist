@@ -117,7 +117,7 @@ namespace DeserializeJSONFromNetwork
                 {
                     Vector3 first = s.finger(0);
                     Console.WriteLine(first.Z);
-                    if (pendingCommit > first.Z && pendingCommit > commitThreshold)
+                    if (pendingCommit > (first.Z + .02) && pendingCommit > commitThreshold)
                     {
                         if (!didCommit)
                         {
