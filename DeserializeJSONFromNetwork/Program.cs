@@ -182,12 +182,13 @@ namespace DeserializeJSONFromNetwork
 
             GL.Enable(EnableCap.Lighting);
 
+            float ambientLight = .3f;
+            float[] lightKa = { ambientLight, ambientLight, ambientLight, 1.0f };
+            GL.Light(LightName.Light0, LightParameter.Ambient, lightKa);
+
             GL.Enable(EnableCap.Light0);
-            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.4f, 0.0f, 1.0f, 0.0f));
-            GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(1.0f, 1.0f, 1.0f, 1.0f));
-            GL.Enable(EnableCap.Light1);
-            GL.Light(LightName.Light1, LightParameter.Position, new Color4(-0.4f, 0.0f, 1.0f, 0.0f));
-            GL.Light(LightName.Light1, LightParameter.Diffuse, new Color4(1.0f, 1.0f, 1.0f, 1.0f));
+            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(1 - ambientLight, 1 - ambientLight, 1 - ambientLight, 1.0f));
 
             GL.Enable(EnableCap.ColorMaterial);
             GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
