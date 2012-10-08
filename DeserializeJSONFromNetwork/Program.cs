@@ -72,6 +72,7 @@ namespace DeserializeJSONFromNetwork
             GL.LoadMatrix(ref projection);
         }
 
+        public bool alreadySwitched = false;
         /// <summary>
         /// Called when it is time to setup the next frame. Add you game logic here.
         /// </summary>
@@ -108,8 +109,18 @@ namespace DeserializeJSONFromNetwork
             }
             if (Keyboard[Key.Right])
             {
+                if (!alreadySwitched)
+                {
+                    SwitchToNextMesh();
+                    alreadySwitched = true;
+                }
+
                 areaMove.X += .1f;
                 test.ClearUncommitted();
+            }
+            else
+            {
+                alreadySwitched = false;
             }
             if (Keyboard[Key.Up])
             {
@@ -198,7 +209,7 @@ namespace DeserializeJSONFromNetwork
 
             SwapBuffers();
         }
-
+        public ModeSwitcher.EditModeWrapper editMode;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -206,8 +217,8 @@ namespace DeserializeJSONFromNetwork
         static void Main(string[] args)
         {
             Program game = new Program();
-            ModeSwitcher.EditModeWrapper editMode = new ModeSwitcher.EditModeWrapper();
-            game.deform.editMode = editMode;
+            game.editMode = new ModeSwitcher.EditModeWrapper();
+            game.deform.editMode = game.editMode;
             // web code
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
@@ -271,8 +282,8 @@ namespace DeserializeJSONFromNetwork
             Thread guiThread = new Thread(() =>
             {
                 ModeSwitcher modeSwitcher = new ModeSwitcher();
-                modeSwitcher.currentMode = editMode;
-                editMode.modeSwitcher = modeSwitcher;
+                modeSwitcher.currentMode = game.editMode;
+                game.editMode.modeSwitcher = modeSwitcher;
                 modeSwitcher.meshTypeChanged = (MeshTypes newMeshType) =>
                 {
                     Console.WriteLine(newMeshType.ToString());
@@ -375,6 +386,22 @@ namespace DeserializeJSONFromNetwork
             app.MainWindow = paintWindow;
             app.Run();
             */
+            
+        }
+
+        public int lastMeshNum = 0;
+        public void SwitchToNextMesh()
+        {
+            if (test.undoStack.Count == 0)
+            {
+                lastMeshNum = (lastMeshNum + 1) % 4;
+                if (lastMeshNum == 0) test = new SphericalMesh(150, 100);
+                if (lastMeshNum == 1) test = new CartesianMesh(100, 100);
+                if (lastMeshNum == 2) test = new CylindricalMesh(150, 100);
+                if (lastMeshNum == 3) test = new TorusMesh(150, 100);
+                deform = new CalculateDeform(test);
+                deform.editMode = editMode;
+            }
             
         }
         
