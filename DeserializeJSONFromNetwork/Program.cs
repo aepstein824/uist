@@ -33,7 +33,7 @@ namespace DeserializeJSONFromNetwork
         {
             int size = 4;
             Vector3[] vertices = new Vector3 [size * size];
-            test = new SphericalMesh(150, 70);
+            test = new CylindricalMesh(150, 70);
             deform = new CalculateDeform(test);
             deform.program = this;
             VSync = VSyncMode.On;
@@ -181,12 +181,18 @@ namespace DeserializeJSONFromNetwork
             GL.LoadMatrix(ref modelview);
 
             GL.Enable(EnableCap.Lighting);
+
             GL.Enable(EnableCap.Light0);
+            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.4f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
+            GL.Enable(EnableCap.Light1);
+            GL.Light(LightName.Light1, LightParameter.Position, new Color4(-0.4f, 0.0f, 1.0f, 0.0f));
+            GL.Light(LightName.Light1, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
+
             GL.Enable(EnableCap.ColorMaterial);
             GL.ColorMaterial(MaterialFace.FrontAndBack, ColorMaterialParameter.AmbientAndDiffuse);
-            GL.Light(LightName.Light0, LightParameter.Position, new Color4(0.0f, 0.0f, 1.0f, 0.0f));
-            GL.Light(LightName.Light0, LightParameter.Diffuse, new Color4(0.5f, 1.0f, 1.0f, 1.0f));
             GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
+
             test.DrawSelf();
 
             SwapBuffers();

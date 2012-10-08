@@ -21,6 +21,10 @@ namespace DeserializeJSONFromNetwork
         public UInt32 vboid, eboid, nboid, cboid;
         public UInt32 verticalTess, horizontalTess;
         public Vector2 activeAreaStart, activeAreaSize;
+        
+        //hackish place to put these
+        public Vector2 fingerPoint = new Vector2 (100.0f, 100.0f);
+        public bool fingerDown = false;
 
         public void Undo()
         {
@@ -203,6 +207,7 @@ namespace DeserializeJSONFromNetwork
             {
                 for (int j = 0; j < verticalTess; j++)
                 {
+                    float blue = 1.0f;
                     Vector3 p = parameters[i, j];
                     p.Z += uncommitted[i, j];
                     this.vertices[i + j * horizontalTess] = VertexFromParameters(p);
@@ -212,7 +217,12 @@ namespace DeserializeJSONFromNetwork
                     {
                         green = 1.0f;
                     }
-                    this.colors[i + j * horizontalTess] = new Color4(red, green, 1.0f, 1.0f);
+                    if (fingerDown && (fingerPoint - p.Xy).Length < .1 * activeAreaSize.Length)
+                    {
+                        red = 1.0f;
+                        blue = 0.5f;
+                    }
+                    this.colors[i + j * horizontalTess] = new Color4(red, green, blue, 1.0f);
                 }
             }
 
