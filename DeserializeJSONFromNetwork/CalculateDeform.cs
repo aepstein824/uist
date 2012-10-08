@@ -114,13 +114,24 @@ namespace DeserializeJSONFromNetwork
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount() > 0)
             {
+                
+                 
                 Vector3 fingerCenter = s.TouchedFingers().Aggregate((x, y) => x + y);
                 fingerCenter = Vector3.Multiply(fingerCenter, 1.0f / (float)s.TouchedFingers().Length);
+
+                Vector2 meshPointOfContact =
+                        mesh.activeAreaStart
+                            + Vector2.Multiply(mesh.activeAreaSize, fingerCenter.Xy);
+                meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
+
+                mesh.fingerPoint = meshPointOfContact;
+                mesh.fingerDown = true;
+                
                 if (this.editMode.mode == ModeSwitcher.EditMode.Add || this.editMode.mode == ModeSwitcher.EditMode.Subtract)
                 {
                     //Console.WriteLine(fingerCenter.Z);
                     bool newDrop = (pendingCommit > (fingerCenter.Z + .02) && !didCommit);
-                    bool movement = (lastCommitChain - fingerCenter.Xy).Length > recommitDistance;
+                    bool movement = (lastCommitChain - meshPointOfContact).Length > recommitDistance;
                     if (pendingCommit > commitThreshold
                         && (newDrop || movement)) 
                     {
@@ -128,7 +139,7 @@ namespace DeserializeJSONFromNetwork
                         //Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
                         mesh.Commit();
                         pendingCommit = 0.0f;
-                        lastCommitChain = fingerCenter.Xy;
+                        lastCommitChain = meshPointOfContact;
                         return;
                     }
                     if (fingerCenter.Z > commitThreshold)
@@ -148,16 +159,14 @@ namespace DeserializeJSONFromNetwork
                     {
                         narrowness = 100f / (float)s.NormedDistance();
                     }
-                    Vector2 meshPointOfContact =
-                        mesh.activeAreaStart
-                            + Vector2.Multiply(mesh.activeAreaSize, fingerCenter.Xy);
-                    meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
+                    
                     updateParameters(meshPointOfContact, fingerCenter.Z, narrowness);
                 }
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
             {
                 mesh.ClearUncommitted();
+                mesh.fingerDown = false;
             }
         }
 
