@@ -107,7 +107,8 @@ namespace DeserializeJSONFromNetwork
         private bool didCommit = false;
         private float pendingCommit = 0.0f;
         private Vector2 fingerStart;
-
+        private Vector2 lastCommitChain = new Vector2(100, 100);
+        private float recommitDistance = .05f;
         public void ConsumeGesture(Gesture g)
         {
             float commitThreshold = .02f;
@@ -118,16 +119,17 @@ namespace DeserializeJSONFromNetwork
                 {
                     Vector3 first = s.finger(0);
                     Console.WriteLine(first.Z);
-                    if (pendingCommit > (first.Z + .02) && pendingCommit > commitThreshold)
+                    bool newDrop = (pendingCommit > (first.Z + .02) && !didCommit);
+                    bool movement = (lastCommitChain - first.Xy).Length > recommitDistance;
+                    if (pendingCommit > commitThreshold
+                        && (newDrop || movement)) 
                     {
-                        if (!didCommit)
-                        {
-                            didCommit = true;
-                            Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
-                            mesh.Commit();
-                            pendingCommit = 0.0f;
-                            return;
-                        }
+                        didCommit = newDrop;
+                        Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
+                        mesh.Commit();
+                        pendingCommit = 0.0f;
+                        lastCommitChain = first.Xy;
+                        return;
                     }
                     if (first.Z > commitThreshold)
                     {
@@ -136,9 +138,10 @@ namespace DeserializeJSONFromNetwork
                             pendingCommit = first.Z;
                         }
                     }
-                    else
+                    if (first.Z <= commitThreshold)
                     {
                         didCommit = false;
+                        lastCommitChain = new Vector2(100, 100);
                     }
                     float narrowness = 1000;
                     if (s.FingerCount() == 2)
