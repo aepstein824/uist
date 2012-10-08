@@ -216,7 +216,7 @@ namespace DeserializeJSONFromNetwork
 
                     float h, s, v;
                     h = 360.0f * (p.Z / 2.0f + .5f);
-                    s = 1.0f;
+                    s = .5f;
                     v = (i + j) % 2 == 0 ? .5f : .25f;
                     if (ParameterWithinActiveArea(p))
                     {
