@@ -314,11 +314,21 @@ namespace DeserializeJSONFromNetwork
             mouseThread.Start();
             Thread mouseUndoThread = new Thread(() =>
             {
+                int numUndoesSoFar = 0;
                 while (true)
                 {
                     if (undoButtonPressed[0])
                     {
                         game.test.Undo();
+                        for (int i = 0; i < numUndoesSoFar / 5; ++i)
+                        {
+                            game.test.Undo();
+                        }
+                        ++numUndoesSoFar;
+                    }
+                    else
+                    {
+                        numUndoesSoFar = 0;
                     }
                     Thread.Sleep(100);
                 }
