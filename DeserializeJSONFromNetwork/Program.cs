@@ -265,6 +265,10 @@ namespace DeserializeJSONFromNetwork
                 ModeSwitcher modeSwitcher = new ModeSwitcher();
                 modeSwitcher.currentMode = editMode;
                 editMode.modeSwitcher = modeSwitcher;
+                modeSwitcher.meshTypeChanged = (MeshTypes newMeshType) =>
+                {
+                    Console.WriteLine(newMeshType.ToString());
+                };
                 modeSwitcher.Show();
                 Application app = new Application();
                 app.Run();

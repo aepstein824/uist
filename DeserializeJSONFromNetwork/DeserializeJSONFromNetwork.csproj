@@ -64,6 +64,7 @@
     <Compile Include="CartesianMesh.cs" />
     <Compile Include="CylindricalMesh.cs" />
     <Compile Include="Mesh.cs" />
+    <Compile Include="MeshTypes.cs" />
     <Compile Include="ModeSwitcher.xaml.cs">
       <DependentUpon>ModeSwitcher.xaml</DependentUpon>
     </Compile>

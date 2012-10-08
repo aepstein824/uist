@@ -4,10 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="168" d:DesignWidth="127" SizeToContent="WidthAndHeight">
+             d:DesignHeight="191" d:DesignWidth="282" SizeToContent="WidthAndHeight">
     <Grid>
-        <RadioButton IsChecked="True" Content="Add" Height="16" HorizontalAlignment="Left" Margin="5,41,0,0" Name="radioButtonAdd" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonAdd_Checked" />
-        <RadioButton Content="Subtract" Height="16" HorizontalAlignment="Left" Margin="5,63,0,0" Name="radioButtonSubtract" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonSubtract_Checked" />
-        <Label Content="Edit Mode" Height="28" HorizontalAlignment="Left" Margin="5,7,0,0" Name="label1" VerticalAlignment="Top" />
+        <RadioButton IsChecked="True" Content="Add" Height="16" HorizontalAlignment="Left" Margin="12,31,0,0" Name="radioButtonAdd" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonAdd_Checked" />
+        <RadioButton Content="Subtract" Height="16" HorizontalAlignment="Left" Margin="72,31,0,0" Name="radioButtonSubtract" VerticalAlignment="Top" GroupName="EditMode" Checked="radioButtonSubtract_Checked" />
+        <Label Content="Edit Mode (hold left mouse button to change)" Height="28" HorizontalAlignment="Left" Margin="5,7,0,0" Name="label1" VerticalAlignment="Top" />
+        <ComboBox Height="23" HorizontalAlignment="Left" Margin="12,110,0,0" Name="meshSelector" VerticalAlignment="Top" Width="236" SelectionChanged="meshSelector_SelectionChanged" />
+        <Label Content="Mesh (changing mesh resets edits)" Height="28" HorizontalAlignment="Left" Margin="5,76,0,0" Name="label2" VerticalAlignment="Top" />
     </Grid>
 </Window>

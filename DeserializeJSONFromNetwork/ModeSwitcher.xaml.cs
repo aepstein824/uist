@@ -20,9 +20,16 @@ namespace DeserializeJSONFromNetwork
     /// </summary>
     public partial class ModeSwitcher : Window
     {
+        public Action<MeshTypes> meshTypeChanged = null;
+
         public ModeSwitcher()
         {
             InitializeComponent();
+            foreach (string x in MeshTypeUtils.allTypeNames())
+            {
+                meshSelector.Items.Add(x);
+            }
+            meshSelector.SelectedIndex = 0;
         }
 
         public enum EditMode
@@ -75,6 +82,12 @@ namespace DeserializeJSONFromNetwork
         private void radioButtonAdd_Checked(object sender, RoutedEventArgs e)
         {
             currentMode.mode = EditMode.Add;
+        }
+
+        private void meshSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (meshTypeChanged != null)
+                meshTypeChanged((MeshTypes)meshSelector.SelectedIndex);
         }
     }
 }
