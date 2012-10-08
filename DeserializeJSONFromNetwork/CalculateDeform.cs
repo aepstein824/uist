@@ -131,7 +131,7 @@ namespace DeserializeJSONFromNetwork
                 {
                     Console.WriteLine(fingerCenter.Z);
                     bool newDrop = (pendingCommit > (fingerCenter.Z + .02) && !didCommit);
-                    bool movement = (lastCommitChain - fingerCenter.Xy).Length > recommitDistance;
+                    bool movement = (lastCommitChain - meshPointOfContact).Length > recommitDistance;
                     if (pendingCommit > commitThreshold
                         && (newDrop || movement)) 
                     {
@@ -139,7 +139,7 @@ namespace DeserializeJSONFromNetwork
                         Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
                         mesh.Commit();
                         pendingCommit = 0.0f;
-                        lastCommitChain = fingerCenter.Xy;
+                        lastCommitChain = meshPointOfContact;
                         return;
                     }
                     if (fingerCenter.Z > commitThreshold)
