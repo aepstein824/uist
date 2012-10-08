@@ -169,7 +169,7 @@ namespace DeserializeJSONFromNetwork
             base.OnRenderFrame(e);
 
             float angle = (test.activeAreaSize.Length / .84f) * (float)Math.PI / 4;
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView( angle, Width / (float)Height, 1.0f, 64.0f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView( angle, Width / (float)Height, .1f, 10.0f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
 
