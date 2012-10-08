@@ -205,9 +205,10 @@ namespace DeserializeJSONFromNetwork
             GestureGenerator gestureGenerator = new GestureGenerator();
             Thread generateGesturesThread = new Thread(() =>
             {
-                WebClient webClient = new WebClient();
-                webClient.Proxy = null;
-                string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                //WebClient webClient = new WebClient();
+                //webClient.Proxy = null;
+                //string IPaddress = webClient.DownloadString("http://transgame.csail.mit.edu:9537/?varname=jedeyeserver");
+                string IPaddress = "127.0.0.1";
                 TcpClient client = new TcpClient(IPaddress, 1101);
                 TextReader reader = new StreamReader(client.GetStream());
                 while (true)

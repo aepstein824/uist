@@ -88,11 +88,13 @@ System::String^ getIPAddress()
 }
 
 int main(int argv, char** argc){
+	/*
 	//System::String^ ipAddress = (gcnew WebClient())->DownloadString("http://myip.ozymo.com/");
 	System::String^ ipAddress = getIPAddress();
 	System::Console::WriteLine("your ip address is: " + ipAddress);
     (gcnew WebClient())->DownloadString("http://transgame.csail.mit.edu:9537/?set=" + ipAddress + "&varname=jedeyeserver");
-    //The port you want the server to listen on
+    */
+	//The port you want the server to listen on
     int host_port= 1101;
 
     //Initialize socket support WINDOWS ONLY!

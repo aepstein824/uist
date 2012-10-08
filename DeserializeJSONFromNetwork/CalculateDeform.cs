@@ -118,14 +118,14 @@ namespace DeserializeJSONFromNetwork
                 fingerCenter = Vector3.Multiply(fingerCenter, 1.0f / (float)s.TouchedFingers().Length);
                 if (this.editMode.mode == ModeSwitcher.EditMode.Add || this.editMode.mode == ModeSwitcher.EditMode.Subtract)
                 {
-                    Console.WriteLine(fingerCenter.Z);
+                    //Console.WriteLine(fingerCenter.Z);
                     bool newDrop = (pendingCommit > (fingerCenter.Z + .02) && !didCommit);
                     bool movement = (lastCommitChain - fingerCenter.Xy).Length > recommitDistance;
                     if (pendingCommit > commitThreshold
                         && (newDrop || movement)) 
                     {
                         didCommit = newDrop;
-                        Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
+                        //Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
                         mesh.Commit();
                         pendingCommit = 0.0f;
                         lastCommitChain = fingerCenter.Xy;
