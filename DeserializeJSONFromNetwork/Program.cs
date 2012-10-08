@@ -310,7 +310,20 @@ namespace DeserializeJSONFromNetwork
                     Thread.Sleep(10);
                 }
             });
+            bool[] undoButtonPressed = new bool[] { false };
             mouseThread.Start();
+            Thread mouseUndoThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    if (undoButtonPressed[0])
+                    {
+                        game.test.Undo();
+                    }
+                    Thread.Sleep(100);
+                }
+            });
+            mouseUndoThread.Start();
             game.Mouse.ButtonDown += (object o, MouseButtonEventArgs e) =>
             {
                 if (e.Button == MouseButton.Left)
@@ -323,6 +336,7 @@ namespace DeserializeJSONFromNetwork
                 //}
                 if (e.Button == MouseButton.Right)
                 {
+                    undoButtonPressed[0] = true;
                     game.test.Undo();
                 }
             };
@@ -331,6 +345,10 @@ namespace DeserializeJSONFromNetwork
                 if (e.Button == MouseButton.Left)
                 {
                     game.deform.editMode.mode = ModeSwitcher.EditMode.Add;
+                }
+                if (e.Button == MouseButton.Right)
+                {
+                    undoButtonPressed[0] = false;
                 }
             };
             game.Run();
