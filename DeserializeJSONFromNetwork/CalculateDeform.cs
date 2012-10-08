@@ -106,7 +106,6 @@ namespace DeserializeJSONFromNetwork
 
         private bool didCommit = false;
         private float pendingCommit = 0.0f;
-        private Vector2 fingerStart;
         private Vector2 lastCommitChain = new Vector2(100, 100);
         private float recommitDistance = .05f;
         public void ConsumeGesture(Gesture g)
@@ -115,12 +114,13 @@ namespace DeserializeJSONFromNetwork
             SensorData s = g.DataSinceGestureStart.ReverseIterate().FirstOrDefault();
             if (s != null && s.FingerCount() > 0)
             {
+                Vector3 fingerCenter = s.TouchedFingers().Aggregate((x, y) => x + y);
+                fingerCenter = Vector3.Multiply(fingerCenter, 1.0f / (float)s.TouchedFingers().Length);
                 if (this.editMode.mode == ModeSwitcher.EditMode.Add || this.editMode.mode == ModeSwitcher.EditMode.Subtract)
                 {
-                    Vector3 first = s.finger(0);
-                    Console.WriteLine(first.Z);
-                    bool newDrop = (pendingCommit > (first.Z + .02) && !didCommit);
-                    bool movement = (lastCommitChain - first.Xy).Length > recommitDistance;
+                    Console.WriteLine(fingerCenter.Z);
+                    bool newDrop = (pendingCommit > (fingerCenter.Z + .02) && !didCommit);
+                    bool movement = (lastCommitChain - fingerCenter.Xy).Length > recommitDistance;
                     if (pendingCommit > commitThreshold
                         && (newDrop || movement)) 
                     {
@@ -128,17 +128,17 @@ namespace DeserializeJSONFromNetwork
                         Console.WriteLine("leftbottomcorner touched " + s.corners[0]);
                         mesh.Commit();
                         pendingCommit = 0.0f;
-                        lastCommitChain = first.Xy;
+                        lastCommitChain = fingerCenter.Xy;
                         return;
                     }
-                    if (first.Z > commitThreshold)
+                    if (fingerCenter.Z > commitThreshold)
                     {
                         if (!didCommit)
                         {
-                            pendingCommit = first.Z;
+                            pendingCommit = fingerCenter.Z;
                         }
                     }
-                    if (first.Z <= commitThreshold)
+                    if (fingerCenter.Z <= commitThreshold)
                     {
                         didCommit = false;
                         lastCommitChain = new Vector2(100, 100);
@@ -150,9 +150,9 @@ namespace DeserializeJSONFromNetwork
                     }
                     Vector2 meshPointOfContact =
                         mesh.activeAreaStart
-                            + Vector2.Multiply(mesh.activeAreaSize, first.Xy);
+                            + Vector2.Multiply(mesh.activeAreaSize, fingerCenter.Xy);
                     meshPointOfContact = Mesh.Wrap2D(meshPointOfContact);
-                    updateParameters(meshPointOfContact, first.Z, narrowness);
+                    updateParameters(meshPointOfContact, fingerCenter.Z, narrowness);
                 }
             }
             if (g.EventType == GestureGenerator.EventType.VANISH)
