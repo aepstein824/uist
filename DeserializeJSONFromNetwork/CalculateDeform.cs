@@ -77,7 +77,7 @@ namespace DeserializeJSONFromNetwork
         /**
          * returns deformation of any point
          */
-        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force, float narrowness=100)
+        public float deform(Vector2 pointOfContact, Vector2 pointOfInterest, float force, float narrowness=200)
         {
             float distance = this.getRealDistanceWithWrap(pointOfContact, pointOfInterest);
             if (distance > MAX_DISTANCE)
@@ -86,12 +86,12 @@ namespace DeserializeJSONFromNetwork
             }
             else
             {
-                return force * (float)Math.Exp(-narrowness * distance * distance);
+                return force * (float)Math.Exp(-narrowness * distance * distance * distance);
             }
         }
 
 
-        public void updateParameters(Vector2 pointOfContact, float force, float narrowness=100)
+        public void updateParameters(Vector2 pointOfContact, float force, float narrowness=200)
         {
             for (int i = 0; i < mesh.horizontalTess; i++)
             {
@@ -154,10 +154,10 @@ namespace DeserializeJSONFromNetwork
                         didCommit = false;
                         lastCommitChain = new Vector2(100, 100);
                     }
-                    float narrowness = 1000;
-                    if (s.FingerCount() == 2)
+                    float narrowness = 4000;
+                    if (s.FingerCount() >= 2)
                     {
-                        narrowness = 100f / (float)s.NormedDistance();
+                        narrowness = 400f / (float)s.NormedDistance();
                     }
                     
                     updateParameters(meshPointOfContact, fingerCenter.Z, narrowness);
