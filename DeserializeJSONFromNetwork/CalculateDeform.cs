@@ -86,7 +86,7 @@ namespace DeserializeJSONFromNetwork
             }
             else
             {
-                return force * (float)Math.Exp(-narrowness * distance * distance * distance);
+                return .5f * force * (float)Math.Exp(-narrowness * distance * distance * distance);
             }
         }
 
@@ -144,7 +144,7 @@ namespace DeserializeJSONFromNetwork
                     }
                     if (fingerCenter.Z > commitThreshold)
                     {
-                        if (!didCommit)
+                        //if (!didCommit)
                         {
                             pendingCommit = fingerCenter.Z;
                         }
@@ -152,12 +152,13 @@ namespace DeserializeJSONFromNetwork
                     if (fingerCenter.Z <= commitThreshold)
                     {
                         didCommit = false;
+                        pendingCommit = 0.0f;
                         lastCommitChain = new Vector2(100, 100);
                     }
-                    float narrowness = 4000;
+                    float narrowness = 8000;
                     if (s.FingerCount() >= 2)
                     {
-                        narrowness = 400f / (float)s.NormedDistance();
+                        narrowness = 800f / (float)s.NormedDistance();
                     }
                     
                     updateParameters(meshPointOfContact, fingerCenter.Z, narrowness);

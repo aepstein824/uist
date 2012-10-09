@@ -37,6 +37,7 @@ namespace DeserializeJSONFromNetwork
             deform = new CalculateDeform(test);
             deform.program = this;
             VSync = VSyncMode.On;
+            WindowState = OpenTK.WindowState.Fullscreen;
         }
 
         /// <summary>Load resources here.</summary>
